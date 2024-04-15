@@ -45,8 +45,8 @@ struct AdvectionRelaxation{
     ftype step = (x>DEFINED_N/2)? 1:0;
     step = 2*step-1;
     //u =  {step, step/sqrt(model.a)};
-    //u =  {sin(2*M_PI*x/DEFINED_N), sin(2*M_PI*x/DEFINED_N)/sqrt(model.a)};
-    u =  {x, 2*x};
+    u =  {sin(2*M_PI*x/DEFINED_N), sin(2*M_PI*x/DEFINED_N)/sqrt(model.a)};
+    //u =  {x, 2*x};
   }
 
   auto Flux(){
@@ -57,17 +57,17 @@ struct AdvectionRelaxation{
   }
 
   auto FluxMinus(){
-    SolutionVector w {u};
-    u[0] = 0 - 0.5*sqrt(model.a*model.b) * w[0] + 0.5*model.a * w[1];
-    u[1] = 0 + 0.5*model.b * w[0] - 0.5*sqrt(model.a*model.b) * w[1];
-    return *this;
+    AdvectionRelaxation w {};
+    w[0] = 0 - 0.5*sqrt(model.a*model.b) * u[0] + 0.5*model.a * u[1];
+    w[1] = 0 + 0.5*model.b * u[0] - 0.5*sqrt(model.a*model.b) * u[1];
+    return w;
   }
 
   auto FluxPlus(){
     SolutionVector w {u};
-    u[0] = 0 + 0.5*sqrt(model.a*model.b) * w[0] + 0.5*model.a * w[1];
-    u[1] = 0 + 0.5*model.b * w[0] + 0.5*sqrt(model.a*model.b) * w[1];
-    return *this;
+    w[0] = 0 + 0.5*sqrt(model.a*model.b) * u[0] + 0.5*model.a * u[1];
+    w[1] = 0 + 0.5*model.b * u[0] + 0.5*sqrt(model.a*model.b) * u[1];
+    return w;
   }
 };
 
@@ -83,6 +83,7 @@ struct DumbserMethod {
 
   arma::mat K1inv;
   arma::mat K2;
+  arma::mat I4volflux; //matrix for volume flux
 
   using xDGdecomposition = std::array<T,NBx>; // U[ibx][iq] 
   using tDGdecomposition = std::array<T,NBt>; // U[ibt][iq] 
@@ -123,7 +124,36 @@ struct DumbserMethod {
       arma::mat Kximat(&Kxi[0][0], NBt*NBx, NBt*NBx);
       K1inv = K1mat.i();
       K2 = K1mat.i()*Kximat;
+      I4volflux.set_size(NBx,NBx);
+      for (int ikx=0; ikx<NBx; ikx++) {
+        for (int ilx=0; ilx<NBx; ilx++) {
+          I4volflux(ilx,ikx) = GAUSS_WEIGHTS[Mx][ilx] * deriv_polynomial<Mx>(ikx, GAUSS_ROOTS[Mx][ilx]); 
+        }
+      }
   };
+
+  // For Flux
+  //
+  T boundary_0_project_at_ti(xtDGdecomposition q, int ikt) {
+    T qR; 
+    for (int iq=0; iq<NQ; iq++){
+      for (int ikx=0; ikx<NBx; ikx++) {
+        int ik {ikx*NBt + ikt}; 
+        qR[iq] += POLYNOM_AT_ZERO[Mx][ikx] * q[ik][iq];
+      }
+    }
+    return qR;
+  }
+  T boundary_1_project_at_ti(xtDGdecomposition q, int ikt) {
+    T qL; 
+    for (int iq=0; iq<NQ; iq++){
+      for (int ikx=0; ikx<NBx; ikx++) {
+        int ik {ikx*NBt + ikt}; 
+        qL[iq] += POLYNOM_AT_ONE[Mx][ikx] * q[ik][iq];
+      }
+    }
+    return qL;
+  }
 
   xDGdecomposition TakeRootValue (int ix, ftype dx){
     xDGdecomposition U {}; 
@@ -155,38 +185,10 @@ struct DumbserMethod {
         }
       }
     }
-//        for (int iter=0; iter<MAX_ITERS; iter++) {
-//        arma::mat Fp = flux(qp);
-//        for (int iq=0; iq<NQ; iq++) {
-//          qp.col(iq) = K1inv*Wp.col(iq) - K2 * (dt/dx) * Fp.col(iq);
-
-    K1inv.print("K1inv");
-    K2.print("K2");
-    fmt::print("qp = \n");
-    for (int il=0; il<NBt*NBx; il++) {
-      for (int iq=0; iq<NQ; iq++) {
-        fmt::print("{} ",q[il][iq]);
-      }
-      fmt::print("\n");
-    }
-    fmt::print("Wp = \n");
-    for (int il=0; il<NBt*NBx; il++) {
-      for (int iq=0; iq<NQ; iq++) {
-        fmt::print("{} ",W[il][iq]);
-      }
-      fmt::print("\n");
-    }
     for (int iter=0; iter<MAX_ITERS; iter++) {
       xtDGdecomposition F {};
       for (int il=0; il<NBt*NBx; il++) {
         F[il] = q[il].Flux();
-      }
-      fmt::print("Fp = \n");
-      for (int il=0; il<NBt*NBx; il++) {
-        for (int iq=0; iq<NQ; iq++) {
-          fmt::print("{} ",F[il][iq]);
-        }
-        fmt::print("\n");
       }
       for (int ikx=0; ikx<NBx; ikx++) {
         for (int ikt=0; ikt<NBt; ikt++) {
@@ -194,21 +196,12 @@ struct DumbserMethod {
           for (int iq=0; iq<NQ; iq++) {
             q[ik][iq] = 0; 
             for (int il=0; il<NBt*NBx; il++) {
-              q[ik][iq] += K1inv(ik,il)*W[il][iq];
-              q[ik][iq] += - K2(ik,il)* (dt/dx)* F[il][iq];
+              q[ik][iq] += K1inv(ik,il)*W[il][iq] - K2(ik,il)* (dt/dx)* F[il][iq];
             }
           }
         }
       }
     }
-    fmt::print("qp = \n");
-    for (int il=0; il<NBt*NBx; il++) {
-      for (int iq=0; iq<NQ; iq++) {
-        fmt::print("{} ",q[il][iq]);
-      }
-      fmt::print("\n");
-    }
-    
 
     return q;
   }
@@ -230,6 +223,65 @@ struct DumbserMethod {
         }
       }
 
+
+    } //end ix loop 
+
+  };
+
+  void update () {
+    for (int ix=0; ix<N+2; ix++){ // Two extra updates to prepare periodic boundary data; if(ix> 0 (or 1)) is below to account for it 
+
+      xtDGdecomposition q {ADER(cells[(ix+N)%N])}; 
+
+      // dg-update. compute flux
+      
+      T left_cell_right_flux {};
+
+      if (ix > 0) {
+        T left_cell_Fx1_integrated_dt {};
+        T Fx0_integrated_dt {};
+        for (int ikt=0; ikt<NBt; ikt++) {
+          T qL {boundary_1_project_at_ti(left_cell_q, ikt)};
+          T qR {boundary_0_project_at_ti(q, ikt)};
+          T left_cell_Fx1_at_ti {qL.FluxPlus()}; 
+          T Fx0_at_ti {qR.FluxMinus()}; 
+          for (int iq=0; iq<NQ; iq++) {
+            Fx0_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * Fx0_at_ti[iq];
+            left_cell_Fx1_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * left_cell_Fx1_at_ti[iq];
+          }
+        }
+        for (int iq=0; iq<NQ; iq++) {
+          left_cell_right_flux[iq] = - Fx0_integrated_dt[iq] + left_cell_Fx1_integrated_dt[iq];
+        }
+      }
+
+
+      // dg-update. update cell
+      if (ix > 1) {
+        for (int iq=0; iq<NQ; iq++) {
+          for (int ikx=0; ikx<NBx; ikx++) {
+            T addfluxp {};
+            for (int ilx=0; ilx<NBx; ilx++) {
+              for (int ilt=0; ilt<NBt; ilt++) {
+                int il {ilx*NBt + ilt}; 
+                T F = left_cell_q[il].Flux();
+                for (int iq=0; iq<NQ; iq++){
+                  addfluxp[iq] += F[iq] * GAUSS_WEIGHTS[Mt][ilt] * I4volflux(ilx,ikx);
+                }
+              }
+            }
+            cells[(N+ix-1)%N][ikx][iq] -= (1/(dx*GAUSS_WEIGHTS[Mx][ikx])) * ( 
+                                                  left_cell_right_flux[iq] * POLYNOM_AT_ONE[Mx][ikx] - 
+                                                  left_cell_left_flux[iq] * POLYNOM_AT_ZERO[Mx][ikx] -
+                                                  dt * addfluxp[iq]
+                                                  );
+          }
+        }
+      }
+
+      left_cell_q = q;
+      left_cell_left_flux = left_cell_right_flux;
+      
 
     } //end ix loop 
 
@@ -262,14 +314,16 @@ struct DumbserMethod {
 
 
 
-//template<int Mx, int Mt, typename T, int N, int ddx>
 int main() {
    DumbserMethod<DEFINED_MX, DEFINED_MT, AdvectionRelaxation, DEFINED_N, 1> mesh_calc;
    mesh_calc.init();
    int istep = 0;
    mesh_calc.print_all(istep);
-   mesh_calc.ADER_update();
-   istep++;
+   for (; istep < DEFINED_NT; istep++) {
+     mesh_calc.update();
+   }
+   //mesh_calc.ADER_update();
+   //istep++;
    mesh_calc.print_all(istep);
    fmt::print("Finished\n");
    return 0;
