@@ -28,7 +28,7 @@ main: main.o
 
 run: main 
 	rm -f *.dat
-	./$< 
+	./$<  > run.log
 
 show: run
 	python3 plot_output.py

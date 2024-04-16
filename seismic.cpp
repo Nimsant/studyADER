@@ -9,7 +9,7 @@ namespace seismic {
   };
   Material get_material(int im) {
     if (im==0) { 
-      return Material(4,1);
+      return Material(1,1);
     } else {
       return Material(1,1);
     }
@@ -26,10 +26,11 @@ namespace seismic {
       return u.at(i);
     }
 
-    void fromInit(ftype x){
+    void fromInit(ftype x, ftype Lx){
       //u =  {sin(2*M_PI*x/DEFINED_N), sin(2*M_PI*x/DEFINED_N)/sqrt(model.a)};
       Material m = get_material(material_index);
-      ftype wave = sin(2*M_PI*x/DEFINED_N);
+      ftype wave = sin(2*M_PI*x/Lx);
+
       u =  {wave, - wave/m.rho/m.cp};
     }
 

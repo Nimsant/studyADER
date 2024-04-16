@@ -25,11 +25,11 @@ template <int M> ftype deriv_polynomial(int l, ftype x){
 #include "gen_weights.cpp"
 #include "gen_roots.cpp"
 
-template<int Mx, int Mt, typename T, int N, int ddx>
+template<int Mx, int Mt, typename T, int N>
 struct DumbserMethod {
 
-  static constexpr ftype Lx {1.*N*ddx};
-  static constexpr ftype dx {1./ddx};
+  static constexpr ftype Lx {1.*N};
+  static constexpr ftype dx {1.};
   static constexpr ftype dt {.1}; ///???????????????
   static constexpr int NBx {Mx+1};
   static constexpr int NBt {Mt+1};
@@ -113,7 +113,7 @@ struct DumbserMethod {
     xDGdecomposition U {}; 
     for (int ibx=0; ibx<NBx; ibx++) {
       ftype xikx = dx * (ix + GAUSS_ROOTS[Mx][ibx]);
-      T udata; udata.fromInit(xikx);
+      T udata; udata.fromInit(xikx, Lx);
       for (int iq=0; iq<NQ; iq++) {
         U[ibx][iq] = udata[iq];
       }
@@ -241,6 +241,39 @@ struct DumbserMethod {
 
   };
 
+
+  void print_error (int istep) {
+    //std::string funcfilename = fmt::format("error_{}.dat",istep);
+    //std::FILE* file = std::fopen( funcfilename.c_str(), "w");
+    //std::fclose(file);
+    
+    ftype L2 {0};
+    ftype Linf {0};
+    for (int ix=0; ix<N; ix++){
+      for (int ibx=0; ibx<NBx; ibx++) {
+        ftype xikx = dx * (ix + GAUSS_ROOTS[Mx][ibx]) - istep * dt ;
+        T udata; udata.fromInit(xikx, Lx);
+        for (int iq=0; iq<NQ; iq++) {
+          ftype t = udata[iq] - cells[ix][ibx][iq];
+          L2 += t*t;
+          ftype diff {fabs(udata[iq] - cells[ix][ibx][iq])};
+          if (diff > Linf) { Linf = diff; }
+        }
+      }
+    }
+    L2 = sqrt(L2)/N;
+
+    fmt::print(" {:8}",  dx);
+    fmt::print(" {:8}",  dt);
+    fmt::print(" {:8}",  istep*dt);
+    fmt::print(" {:6}",  N);
+    fmt::print(" {:4}",  NQ);
+    fmt::print(" {:4}",  NBx);
+    fmt::print(" {:4}",  NBt);
+    fmt::print(" {:16.9}",  L2);
+    fmt::print(" {:16.9}",  Linf);
+    fmt::print(" \n");
+  }
   void print_all (int istep) {
     std::string funcfilename = fmt::format("drop_{}.dat",istep);
     std::FILE* file = std::fopen( funcfilename.c_str(), "w");
@@ -269,18 +302,75 @@ struct DumbserMethod {
 
 #include "seismic.cpp"
 
+template<int MX, int MT, int N>
+void one_full_calc(){
+    DumbserMethod<MX, MT, seismic::Seismic, N> mesh_calc;
+    mesh_calc.init();
+    ftype courant = mesh_calc.dt * seismic::get_material(0).cp / mesh_calc.dx;
+    int istep = 0;
+    for (; istep < N/courant; istep++) {
+      mesh_calc.update();
+    }
+    mesh_calc.print_error(istep);
+}
+/*
+template<int MX, int MT, int N>
+void mass_calc<MX, MT, N, 0>(){
+}
+*/
+
+
 int main() {
-   DumbserMethod<DEFINED_MX, DEFINED_MT, seismic::Seismic, DEFINED_N, 1> mesh_calc;
-   mesh_calc.init();
-   int istep = 0;
-   mesh_calc.print_all(istep);
-   for (; istep < DEFINED_NT; istep++) {
-     mesh_calc.update();
-   }
-   //mesh_calc.ADER_update();
-   //istep++;
-   mesh_calc.print_all(istep);
-   fmt::print("Finished\n");
+  fmt::print(" {:>8} {:>8} {:>8} {:>6} {:>4} {:>4} {:>4} {:>16} {:>16}\n","dx", "dt", "T", "N", "NQ", "NBx", "NBt", "L2", "Linf");
+  one_full_calc<0,0,4>();
+  one_full_calc<1,1,4>();
+  one_full_calc<2,2,4>();
+  one_full_calc<3,3,4>();
+  one_full_calc<0,0,8>();
+  one_full_calc<1,1,8>();
+  one_full_calc<2,2,8>();
+  one_full_calc<3,3,8>();
+  one_full_calc<0,0,16>();
+  one_full_calc<1,1,16>();
+  one_full_calc<2,2,16>();
+  one_full_calc<3,3,16>();
+  one_full_calc<0,0,32>();
+  one_full_calc<1,1,32>();
+  one_full_calc<2,2,32>();
+  one_full_calc<3,3,32>();
+  one_full_calc<0,0,64>();
+  one_full_calc<1,1,64>();
+  one_full_calc<2,2,64>();
+  one_full_calc<3,3,64>();
+  /*
+  {
+    DumbserMethod<DEFINED_MX, DEFINED_MT, seismic::Seismic, DEFINED_N> mesh_calc;
+    mesh_calc.init();
+    int istep = 0;
+    //mesh_calc.print_all(istep);
+    for (; istep < DEFINED_NT; istep++) {
+      mesh_calc.update();
+    }
+    //mesh_calc.ADER_update();
+    //istep++;
+    //mesh_calc.print_all(istep);
+    mesh_calc.print_error(istep);
+  }
+  */
+
+  /*
+  {
+    DumbserMethod<1, 1, seismic::Seismic, DEFINED_N, 1> mesh_calc;
+    mesh_calc.init();
+    int istep = 0;
+    for (; istep < DEFINED_NT; istep++) {
+      mesh_calc.update();
+    }
+    mesh_calc.print_error(istep);
+  }
+  */
+
+   fmt::print("#Finished\n");
    return 0;
 }
 
