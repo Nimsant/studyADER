@@ -25,52 +25,6 @@ template <int M> ftype deriv_polynomial(int l, ftype x){
 #include "gen_weights.cpp"
 #include "gen_roots.cpp"
 
-
-struct AdvectionRelaxation{
-  static const int NQ{ 2 };
-
-  using SolutionVector = std::array<ftype,NQ> ;
-  SolutionVector u {};
-
-  static constexpr struct {
-    ftype a, b;
-  //} model = {.a=1, .b=1};
-  } model = {.a=0.5*0.5, .b=1};
-
-  ftype& operator[] (int i){
-    return u.at(i);
-  }
-
-  void fromInit(ftype x){
-    ftype step = (x>DEFINED_N/2)? 1:0;
-    step = 2*step-1;
-    //u =  {step, step/sqrt(model.a)};
-    u =  {sin(2*M_PI*x/DEFINED_N), sin(2*M_PI*x/DEFINED_N)/sqrt(model.a)};
-    //u =  {x, 2*x};
-  }
-
-  auto Flux(){
-    AdvectionRelaxation w {};
-    w[0] = model.a*u[1];
-    w[1] = model.b*u[0];
-    return w;
-  }
-
-  auto FluxMinus(){
-    AdvectionRelaxation w {};
-    w[0] = 0 - 0.5*sqrt(model.a*model.b) * u[0] + 0.5*model.a * u[1];
-    w[1] = 0 + 0.5*model.b * u[0] - 0.5*sqrt(model.a*model.b) * u[1];
-    return w;
-  }
-
-  auto FluxPlus(){
-    SolutionVector w {u};
-    w[0] = 0 + 0.5*sqrt(model.a*model.b) * u[0] + 0.5*model.a * u[1];
-    w[1] = 0 + 0.5*model.b * u[0] + 0.5*sqrt(model.a*model.b) * u[1];
-    return w;
-  }
-};
-
 template<int Mx, int Mt, typename T, int N, int ddx>
 struct DumbserMethod {
 
@@ -112,7 +66,7 @@ struct DumbserMethod {
               ftype delta_kxlx = (ikx==ilx)? 1:0; 
               ftype delta_ktlt = (ikt==ilt)? 1:0; 
               K1[il][ik] = delta_kxlx * GAUSS_WEIGHTS[Mx][ikx] * ( 
-                  POLYNOM_AT_ONE[Mt][ilt] * POLYNOM_AT_ONE[Mt][ikt]  
+                     POLYNOM_AT_ONE[Mt][ilt] * POLYNOM_AT_ONE[Mt][ikt]  
                    - GAUSS_WEIGHTS[Mt][ilt] * deriv_polynomial<Mt>(ikt, GAUSS_ROOTS[Mt][ilt]) 
                   );
               Kxi[il][ik] = GAUSS_WEIGHTS[Mx][ikx] * deriv_polynomial<Mx>(ilx, GAUSS_ROOTS[Mt][ikx]) * GAUSS_WEIGHTS[Mt][ilt] * delta_ktlt;
@@ -313,9 +267,10 @@ struct DumbserMethod {
 };
 
 
+#include "seismic.cpp"
 
 int main() {
-   DumbserMethod<DEFINED_MX, DEFINED_MT, AdvectionRelaxation, DEFINED_N, 1> mesh_calc;
+   DumbserMethod<DEFINED_MX, DEFINED_MT, seismic::Seismic, DEFINED_N, 1> mesh_calc;
    mesh_calc.init();
    int istep = 0;
    mesh_calc.print_all(istep);
