@@ -9,7 +9,7 @@
 using ftype=double;
 
 #define MAX_MORDER 10
-#define MAX_ITERS 1
+#define MAX_ITERS 10
 
 template <int M> ftype polynominal(int l, ftype x){
 #include "gen_polynomials_l.cpp"
@@ -301,24 +301,19 @@ struct DumbserMethod {
 
 
 #include "seismic.cpp"
+#include "Advection.cpp"
 
 template<int MX, int MT, int N>
 void one_full_calc(){
-    DumbserMethod<MX, MT, seismic::Seismic, N> mesh_calc;
+    DumbserMethod<MX, MT, Advection, N> mesh_calc;
     mesh_calc.init();
-    ftype courant = mesh_calc.dt * seismic::get_material(0).cp / mesh_calc.dx;
+    ftype courant = mesh_calc.dt * Advection::model.a / mesh_calc.dx;
     int istep = 0;
     for (; istep < N/courant; istep++) {
       mesh_calc.update();
     }
     mesh_calc.print_error(istep);
 }
-/*
-template<int MX, int MT, int N>
-void mass_calc<MX, MT, N, 0>(){
-}
-*/
-
 
 int main() {
   fmt::print(" {:>8} {:>8} {:>8} {:>6} {:>4} {:>4} {:>4} {:>16} {:>16}\n","dx", "dt", "T", "N", "NQ", "NBx", "NBt", "L2", "Linf");
