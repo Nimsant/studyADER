@@ -30,7 +30,7 @@ struct DumbserMethod {
 
   static constexpr ftype Lx {1.*N};
   static constexpr ftype dx {1.};
-  static constexpr ftype dt {.1}; ///???????????????
+  static constexpr ftype dt {.01}; ///???????????????
   static constexpr int NBx {Mx+1};
   static constexpr int NBt {Mt+1};
   static constexpr int NQ {T::NQ};
@@ -192,6 +192,7 @@ struct DumbserMethod {
       T left_cell_right_flux {};
 
       if (ix > 0) {
+        /*
         T left_cell_Fx1_integrated_dt {};
         T Fx0_integrated_dt {};
         for (int ikt=0; ikt<NBt; ikt++) {
@@ -206,6 +207,19 @@ struct DumbserMethod {
         }
         for (int iq=0; iq<NQ; iq++) {
           left_cell_right_flux[iq] = - Fx0_integrated_dt[iq] + left_cell_Fx1_integrated_dt[iq];
+        }
+        */
+        T Flux_integrated_dt {};
+        for (int ikt=0; ikt<NBt; ikt++) {
+          T qL {boundary_1_project_at_ti(left_cell_q, ikt)};
+          T qR {boundary_0_project_at_ti(q, ikt)};
+          for (int iq=0; iq<NQ; iq++) {
+            Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * RusanovFlux(qL,qR,dx,dt)[iq];
+            //Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * LaxFlux(qL,qR,dx,dt)[iq];
+          }
+        }
+        for (int iq=0; iq<NQ; iq++) {
+          left_cell_right_flux[iq] = Flux_integrated_dt[iq];
         }
       }
 
@@ -302,6 +316,7 @@ struct DumbserMethod {
 
 #include "seismic.cpp"
 #include "Advection.cpp"
+#include "Burgers.cpp"
 
 template<int MX, int MT, int N>
 void one_full_calc(){
@@ -316,54 +331,21 @@ void one_full_calc(){
 }
 
 int main() {
-  fmt::print(" {:>8} {:>8} {:>8} {:>6} {:>4} {:>4} {:>4} {:>16} {:>16}\n","dx", "dt", "T", "N", "NQ", "NBx", "NBt", "L2", "Linf");
-  one_full_calc<0,0,4>();
-  one_full_calc<1,1,4>();
-  one_full_calc<2,2,4>();
-  one_full_calc<3,3,4>();
-  one_full_calc<0,0,8>();
-  one_full_calc<1,1,8>();
-  one_full_calc<2,2,8>();
-  one_full_calc<3,3,8>();
-  one_full_calc<0,0,16>();
-  one_full_calc<1,1,16>();
-  one_full_calc<2,2,16>();
-  one_full_calc<3,3,16>();
-  one_full_calc<0,0,32>();
-  one_full_calc<1,1,32>();
-  one_full_calc<2,2,32>();
-  one_full_calc<3,3,32>();
-  one_full_calc<0,0,64>();
-  one_full_calc<1,1,64>();
-  one_full_calc<2,2,64>();
-  one_full_calc<3,3,64>();
-  /*
+  //fmt::print(" {:>8} {:>8} {:>8} {:>6} {:>4} {:>4} {:>4} {:>16} {:>16}\n","dx", "dt", "T", "N", "NQ", "NBx", "NBt", "L2", "Linf");
   {
-    DumbserMethod<DEFINED_MX, DEFINED_MT, seismic::Seismic, DEFINED_N> mesh_calc;
+    DumbserMethod<4, 2, Burgers, 100> mesh_calc;
     mesh_calc.init();
     int istep = 0;
-    //mesh_calc.print_all(istep);
-    for (; istep < DEFINED_NT; istep++) {
+    mesh_calc.print_all(istep);
+    for (; istep < 2000; istep++) {
       mesh_calc.update();
     }
     //mesh_calc.ADER_update();
     //istep++;
-    //mesh_calc.print_all(istep);
+    mesh_calc.print_all(istep);
     mesh_calc.print_error(istep);
   }
-  */
 
-  /*
-  {
-    DumbserMethod<1, 1, seismic::Seismic, DEFINED_N, 1> mesh_calc;
-    mesh_calc.init();
-    int istep = 0;
-    for (; istep < DEFINED_NT; istep++) {
-      mesh_calc.update();
-    }
-    mesh_calc.print_error(istep);
-  }
-  */
 
    fmt::print("#Finished\n");
    return 0;

@@ -44,11 +44,11 @@ for ifile, filename in enumerate(droplist):
     step += np.heaviside(-phi,.5) 
     step = 2*step -1
     #ax.plot(x,step,
-    ax.plot(x,np.sin(2*np.pi*(x-1*data['T'])/data["N"]/data["dx"]),
+    #ax.plot(x,np.sin(2*np.pi*(x-1*data['T'])/data["N"]/data["dx"]),
     #ax.plot(x,phi,
-            lw=10, alpha=.2,
-            label=f"theor_{filename.split('_')[1]}",
-            color = pallete((ifile+0.5)/len(droplist)))
+    #        lw=10, alpha=.2,
+    #        label=f"theor_{filename.split('_')[1]}",
+    #        color = pallete((ifile+0.5)/len(droplist)))
 
 ax.grid()
 ax.legend()
