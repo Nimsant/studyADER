@@ -7,6 +7,10 @@ NT?=1
 
 GENERATED_FILES = gen_derivatives_l.cpp gen_polynom_at_one.cpp gen_polynom_at_zero.cpp gen_polynomials_l.cpp gen_roots.cpp gen_weights.cpp
 
+MODELS = Burgers.cpp Advection.cpp seismic.cpp
+
+FLUX = flux.cpp
+
 OPTIONS = -O3 -std=c++2a -I fmt/include  -larmadillo
 DEFINES = -DDEFINED_NT=$(NT) \
 					-DDEFINED_N=$(N) \
@@ -20,7 +24,7 @@ gen: $(GENERATED_FILES)
 $(GENERATED_FILES): PMpolynoms.py
 	python3 $<
 
-main.o: main.cpp $(GENERATED_FILES)
+main.o: main.cpp $(GENERATED_FILES) $(MODELS) $(FLUX)
 	$(GCC) $< $(OPTIONS) $(DEFINES) -c -o $@
 
 main: main.o 

@@ -214,7 +214,8 @@ struct DumbserMethod {
           T qL {boundary_1_project_at_ti(left_cell_q, ikt)};
           T qR {boundary_0_project_at_ti(q, ikt)};
           for (int iq=0; iq<NQ; iq++) {
-            Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * RusanovFlux(qL,qR,dx,dt)[iq];
+            Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * CIRFlux(qL,qR,dx,dt)[iq];
+            //Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * RusanovFlux(qL,qR,dx,dt)[iq];
             //Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * LaxFlux(qL,qR,dx,dt)[iq];
           }
         }
@@ -317,6 +318,7 @@ struct DumbserMethod {
 #include "seismic.cpp"
 #include "Advection.cpp"
 #include "Burgers.cpp"
+#include "flux.cpp"
 
 template<int MX, int MT, int N>
 void one_full_calc(){
@@ -333,7 +335,7 @@ void one_full_calc(){
 int main() {
   //fmt::print(" {:>8} {:>8} {:>8} {:>6} {:>4} {:>4} {:>4} {:>16} {:>16}\n","dx", "dt", "T", "N", "NQ", "NBx", "NBt", "L2", "Linf");
   {
-    DumbserMethod<4, 2, Burgers, 100> mesh_calc;
+    DumbserMethod<3, 3, Advection, 100> mesh_calc;
     mesh_calc.init();
     int istep = 0;
     mesh_calc.print_all(istep);
