@@ -192,38 +192,21 @@ struct DumbserMethod {
       T left_cell_right_flux {};
 
       if (ix > 0) {
-        /*
-        T left_cell_Fx1_integrated_dt {};
-        T Fx0_integrated_dt {};
-        for (int ikt=0; ikt<NBt; ikt++) {
-          T qL {boundary_1_project_at_ti(left_cell_q, ikt)};
-          T qR {boundary_0_project_at_ti(q, ikt)};
-          T left_cell_Fx1_at_ti {qL.FluxPlus()}; 
-          T Fx0_at_ti {qR.FluxMinus()}; 
-          for (int iq=0; iq<NQ; iq++) {
-            Fx0_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * Fx0_at_ti[iq];
-            left_cell_Fx1_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * left_cell_Fx1_at_ti[iq];
-          }
-        }
-        for (int iq=0; iq<NQ; iq++) {
-          left_cell_right_flux[iq] = - Fx0_integrated_dt[iq] + left_cell_Fx1_integrated_dt[iq];
-        }
-        */
+
         T Flux_integrated_dt {};
         for (int ikt=0; ikt<NBt; ikt++) {
           T qL {boundary_1_project_at_ti(left_cell_q, ikt)};
           T qR {boundary_0_project_at_ti(q, ikt)};
           for (int iq=0; iq<NQ; iq++) {
-            Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * CIRFlux(qL,qR,dx,dt)[iq];
-            //Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * RusanovFlux(qL,qR,dx,dt)[iq];
-            //Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * LaxFlux(qL,qR,dx,dt)[iq];
+            Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * CIRFlux(qL,qR,dx,dt)[iq];  // for linear systems 
+            //Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * RusanovFlux(qL,qR,dx,dt)[iq]; // for all systems
+            //Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * LaxFlux(qL,qR,dx,dt)[iq];  // doesn't look well
           }
         }
         for (int iq=0; iq<NQ; iq++) {
           left_cell_right_flux[iq] = Flux_integrated_dt[iq];
         }
       }
-
 
       // dg-update. update cell
       if (ix > 1) {
@@ -250,7 +233,6 @@ struct DumbserMethod {
 
       left_cell_q = q;
       left_cell_left_flux = left_cell_right_flux;
-      
 
     } //end ix loop 
 
