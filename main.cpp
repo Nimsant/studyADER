@@ -25,15 +25,22 @@ template <int M> ftype deriv_polynomial(int l, ftype x){
 #include "gen_weights.cpp"
 #include "gen_roots.cpp"
 
+#include "seismic.cpp"
+#include "Advection.cpp"
+#include "Burgers.cpp"
+#include "flux.cpp"
+
 template<int Mx, int Mt, typename T, int N>
 struct DumbserMethod {
 
-  static constexpr ftype Lx {1.*N};
-  static constexpr ftype dx {1.};
-  static constexpr ftype dt {.01}; ///???????????????
+  ftype Lx {1.*N};
+  ftype dx {1.};
+  ftype dt {.01}; ///???????????????
   static constexpr int NBx {Mx+1};
   static constexpr int NBt {Mt+1};
   static constexpr int NQ {T::NQ};
+
+  bool is_source_cell(int ix){ return true ; };
 
   arma::mat K1inv;
   arma::mat K2;
@@ -61,7 +68,6 @@ struct DumbserMethod {
           int ik {ikx*NBt + ikt}; 
           for (int ilx=0; ilx<NBx; ilx++) {
             for (int ilt=0; ilt<NBt; ilt++) {
-              //int il {ilt*NBx + ilx}; 
               int il {ilx*NBt + ilt}; 
               ftype delta_kxlx = (ikx==ilx)? 1:0; 
               ftype delta_ktlt = (ikt==ilt)? 1:0; 
@@ -127,7 +133,7 @@ struct DumbserMethod {
     }
   };
 
-  xtDGdecomposition ADER (xDGdecomposition u){
+  xtDGdecomposition ADER (xDGdecomposition u, int istep, int ix){
     xtDGdecomposition q {}; 
     xtDGdecomposition W {}; 
     for (int ikx=0; ikx<NBx; ikx++) {
@@ -141,16 +147,23 @@ struct DumbserMethod {
     }
     for (int iter=0; iter<MAX_ITERS; iter++) {
       xtDGdecomposition F {};
+      xtDGdecomposition S {};
       for (int il=0; il<NBt*NBx; il++) {
         F[il] = q[il].Flux();
+        if (is_source_cell(ix)) {
+          S[il] = q[il].Source(dt*istep);
+        }
       }
       for (int ikx=0; ikx<NBx; ikx++) {
         for (int ikt=0; ikt<NBt; ikt++) {
           int ik {ikx*NBt + ikt}; 
           for (int iq=0; iq<NQ; iq++) {
             q[ik][iq] = 0; 
-            for (int il=0; il<NBt*NBx; il++) {
+            for (int il=0; il<NBt*NBx; il++) { //int il {ilx*NBt + ilt}; 
               q[ik][iq] += K1inv(ik,il)*W[il][iq] - K2(ik,il)* (dt/dx)* F[il][iq];
+              if (is_source_cell(ix)) {
+                q[ik][iq] += (dt/dx) * K1inv(ik,il) * S[il][iq] * GAUSS_WEIGHTS[Mx][il/NBt] * GAUSS_WEIGHTS[Mt][il%NBt];
+              }
             }
           }
         }
@@ -161,10 +174,10 @@ struct DumbserMethod {
   }
 
 
-  void ADER_update () {
+  void ADER_update (int istep) {
 
     for (int ix=0; ix<N; ix++){
-      xtDGdecomposition q {ADER(cells[(ix+N)%N])}; 
+      xtDGdecomposition q {ADER(cells[(ix+N)%N], istep, ix)}; 
 
       //Temporary: collect back to u
       for (int iq=0; iq<NQ; iq++) {
@@ -182,10 +195,10 @@ struct DumbserMethod {
 
   };
 
-  void update () {
+  void update (int istep) {
     for (int ix=0; ix<N+2; ix++){ // Two extra updates to prepare periodic boundary data; if(ix> 0 (or 1)) is below to account for it 
 
-      xtDGdecomposition q {ADER(cells[(ix+N)%N])}; 
+      xtDGdecomposition q {ADER(cells[(ix+N)%N], istep, ix)}; 
 
       // dg-update. compute flux
       
@@ -198,9 +211,9 @@ struct DumbserMethod {
           T qL {boundary_1_project_at_ti(left_cell_q, ikt)};
           T qR {boundary_0_project_at_ti(q, ikt)};
           for (int iq=0; iq<NQ; iq++) {
-            Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * CIRFlux(qL,qR,dx,dt)[iq];  // for linear systems 
+            //Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * CIRFlux(qL,qR,dx,dt)[iq];  // for linear systems 
             //Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * RusanovFlux(qL,qR,dx,dt)[iq]; // for all systems
-            //Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * LaxFlux(qL,qR,dx,dt)[iq];  // doesn't look well
+            Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * LaxFlux(qL,qR,dx,dt)[iq];  // doesn't look well
           }
         }
         for (int iq=0; iq<NQ; iq++) {
@@ -297,16 +310,12 @@ struct DumbserMethod {
 };
 
 
-#include "seismic.cpp"
-#include "Advection.cpp"
-#include "Burgers.cpp"
-#include "flux.cpp"
 
 template<int MX, int MT, int N>
 void one_full_calc(){
-    DumbserMethod<MX, MT, Advection, N> mesh_calc;
+    DumbserMethod<MX, MT, seismic::Seismic, N> mesh_calc;
     mesh_calc.init();
-    ftype courant = mesh_calc.dt * Advection::model.a / mesh_calc.dx;
+    ftype courant = mesh_calc.dt * seismic::get_material(0).cp / mesh_calc.dx;
     int istep = 0;
     for (; istep < N/courant; istep++) {
       mesh_calc.update();
@@ -317,12 +326,12 @@ void one_full_calc(){
 int main() {
   //fmt::print(" {:>8} {:>8} {:>8} {:>6} {:>4} {:>4} {:>4} {:>16} {:>16}\n","dx", "dt", "T", "N", "NQ", "NBx", "NBt", "L2", "Linf");
   {
-    DumbserMethod<3, 3, Advection, 100> mesh_calc;
+    DumbserMethod<0, 0, seismic::Seismic, 1000> mesh_calc;
     mesh_calc.init();
     int istep = 0;
     mesh_calc.print_all(istep);
-    for (; istep < 2000; istep++) {
-      mesh_calc.update();
+    for (; istep < 30000; istep++) {
+      mesh_calc.update(istep);
     }
     //mesh_calc.ADER_update();
     //istep++;

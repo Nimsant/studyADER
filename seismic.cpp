@@ -42,6 +42,11 @@ namespace seismic {
       return w;
     }
 
+    auto Source(ftype t){
+      Seismic w {};
+      return w;
+    }
+
     auto FluxMinus(){
       Seismic w {};
       Material m = get_material(material_index);

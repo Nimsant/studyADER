@@ -1,11 +1,19 @@
-GCC =g++
+
+#https://tech.davis-hansson.com/p/make/
+SHELL := bash
+GCC :=g++
+.ONESHELL:
+.SHELLFLAGS := -eu -o pipefail -c
+.DELETE_ON_ERROR:
+MAKEFLAGS += --warn-undefined-variables
+MAKEFLAGS += --no-builtin-rules
+
 
 MX?=0
 MT?=0
 N?=8
 NT?=1
 
-GENERATED_FILES = gen_derivatives_l.cpp gen_polynom_at_one.cpp gen_polynom_at_zero.cpp gen_polynomials_l.cpp gen_roots.cpp gen_weights.cpp
 
 MODELS = Burgers.cpp Advection.cpp seismic.cpp
 
@@ -19,7 +27,9 @@ DEFINES = -DDEFINED_NT=$(NT) \
 
 ALL: main
 
+GENERATED_FILES = gen_derivatives_l.cpp gen_polynom_at_one.cpp gen_polynom_at_zero.cpp gen_polynomials_l.cpp gen_roots.cpp gen_weights.cpp
 gen: $(GENERATED_FILES)
+.PHONY: gen
 
 $(GENERATED_FILES): PMpolynoms.py
 	python3 $<
@@ -33,12 +43,21 @@ main: main.o
 run: main 
 	rm -f *.dat
 	./$<  > run.log
+.PHONY: run
 
 show: run
 	python3 plot_output.py
+.PHONY: show
+
+theory.pdf: theory/a.tex
+	cd $(dir $<)
+	pdflatex $(notdir $<)
+	mv $(notdir $(<:tex=pdf)) ../$@
 
 clean:
 	rm -f main.o main
+.PHONY: clean
 
 cleanall:
 	rm -f main.o main $(GENERATED_FILES) *.dat
+.PHONY: cleanall

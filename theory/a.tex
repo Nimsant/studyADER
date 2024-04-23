@@ -1,0 +1,217 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\definecolor{k}{HTML}{F94144}
+\definecolor{o}{HTML}{F8961E}
+\definecolor{zh}{HTML}{F9C74F}
+\definecolor{z}{HTML}{90BE6D}
+\definecolor{g}{HTML}{4D908E}
+\definecolor{s}{HTML}{277DA1}
+\definecolor{f}{HTML}{6B3D72}
+\definecolor{gray}{HTML}{F6F6F6}
+%\definecolor{gray}{HTML}{E4E8EE}
+
+\newcommand{\D}[2]{\frac{\partial #1}{\partial #2}}
+
+\begin{document}
+\pagecolor{gray}
+
+\begin{equation} \label{localADERinit}
+\left.
+\left.
+ \D {\color{o} u_p} {\tau} + 
+ \D {\color{o} F^*_p (\pmb u)}{\xi} = 
+ {\color{o} S_p} \quad
+ \right| 
+ {\color{z} \cdot
+  \theta_k (\xi,\tau) }
+ \right| 
+ {\color{z} \cdot \int_0^1 d\xi
+  \int_0^1 d\tau }
+\end{equation}
+
+\begin{equation}
+ {\color{o} u_p} \approx 
+ {\color{k} q_p (\xi,\tau)} = 
+ {\color{k} q_{pl_\xi l_\tau} } 
+ {\color{o} \psi_{l_\xi}(\xi)
+            \psi_{l_\tau}(\tau) } = 
+ {\color{k} q_{pl_\xi l_\tau} } 
+ {\color{o} \theta_{l}(\xi,\tau) }
+\end{equation}
+\begin{equation}
+{\color{z} \theta_l (\xi,\tau)= \psi_{l_\xi}(\xi)
+            \psi_{l_\tau}(\tau) }
+\end{equation}
+
+\begin{equation}
+{\color{o} F^*_p(\pmb u)} = 
+{\color{k} \mathcal{F}_{pl} }
+{\color{o} \theta_{l}(\xi,\tau) }; \quad {\color{k} \mathcal{F}_{pl}  \approx  F^*_p(\pmb q) }
+\end{equation}
+
+\begin{equation}
+{\color{o} S^*_p(\pmb u)} = 
+{\color{k} \mathcal{S}_{pl} }
+{\color{o} \theta_{l}(\xi,\tau) }; \quad {\color{k} \mathcal{S}_{pl}  \approx  S_p(\pmb q) }
+\end{equation}
+
+\begin{equation}
+ {\color{z} \int_0^1 \int_0^1 }
+ \D {\color{o} u_p} {\tau} 
+ {\color{z} \theta_k (\xi,\tau) }
+ {\color{z} d\xi d\tau } =
+ {\color{z}
+   \int_0^1 \left( 
+     {\color{o} u_p} 
+     \left. \theta_{k} \right|_{\tau=0}^{\tau=1} - 
+     \int_0^1 {\color{o} u_p}
+     \D{\theta_k}{\tau} d\tau
+   \right) d\xi.
+ }
+\end{equation}
+
+
+\begin{equation}
+ {\color{o}
+  u_p(\tau=0) } = 
+ {\color{f} w_{pl_\xi}}
+ {\color{o} \psi_{l_\xi}(\xi) } ; \quad
+ {\color{k} q_{pl}}{\color{o}\psi_{l_\tau}(0)} = {\color{f} w_{pl_\xi}}
+\end{equation}
+
+\begin{equation}
+ {\color{o}
+  u_p(\tau=1) } = 
+ {\color{k} q_{pl}}
+ {\color{o} \psi_{l_\tau}(1) }
+ {\color{o} \psi_{l_\xi}(\xi) }
+\end{equation}
+
+\begin{align} \begin{split}
+ {\color{z} \cdot \int_0^1 \int_0^1 }
+ \D {\color{o} u_p} {\tau} 
+ {\color{z} \theta_k (\xi,\tau) }
+ {\color{z} d\xi d\tau } &= \\ =
+ {\color{k} q_{pl}}
+ {\color{o} \psi_{l_\tau}(1) }
+ {\color{z} \psi_{k_\tau}(1) } &
+ {\color{z} \int_0^1 }
+ {\color{o} \psi_{l_\xi}(\xi) }
+ {\color{z} \psi_{k_\xi}(\xi) d\xi} - 
+ {\color{f} w_{pl_\xi}}
+ {\color{z} \psi_{k_\tau}(0) } 
+ {\color{z} \int_0^1 }
+ {\color{o} \psi_{l_\xi}(\xi) }
+ {\color{z} \psi_{k_\xi}(\xi) d\xi} - \\ - 
+ {\color{k} q_{pl}}
+ {\color{z} \int_0^1 } &
+ {\color{o} \psi_{l_\xi}(\xi) }
+ {\color{z} \psi_{k_\xi}(\xi) d\xi} 
+ {\color{z} \int_0^1 }
+ {\color{o} \psi_{l_\tau}(\tau) }
+ {\color{z} \D{\psi_{k_\tau}(\tau)}{\tau} d\tau} .
+\end{split}\end{align}
+
+\begin{equation}
+ { \int_0^1 }
+ { \psi_{l_\xi}(\xi) }
+ { \psi_{k_\xi}(\xi) d\xi  = \delta_{l_\xi k_\xi} \mathsf{w}_{k_\xi}}.
+\end{equation}
+
+
+Finally, from (\ref{localADERinit}), we get the system of $k_\xi \cdot k_\tau$ equations:
+\begin{align} \begin{split}
+  {\color{k} q_{pl}}
+  {\color{z} \delta_{l_\xi k_\xi} \mathsf{w}_{k_\xi}} &
+  \left(
+     {\color{o} \psi_{l_\tau}(1) }
+     {\color{z} \psi_{k_\tau}(1) } - 
+     {\color{z} \int_0^1 }
+     {\color{o} \psi_{l_\tau}(\tau) }
+     {\color{z} \D{\psi_{k_\tau}(\tau)}{\tau} d\tau}
+  \right) = \\ =  &
+  {\color{f} w_{pl_\xi}}
+  {\color{z} \psi_{k_\tau}(0) }
+  {\color{z} \delta_{l_\xi k_\xi} \mathsf{w}_{k_\xi}} - 
+  {\color{o} \mathcal{F}_{pl_\xi l_\tau}  ( {\color{k} \pmb q_{l}})}
+  {\color{z} \int_0^1 } 
+  {\color{o} \psi_{l_\tau}(\tau) }
+  {\color{z} \psi_{k_\tau}(\tau) d\tau} 
+  {\color{z} \int_0^1 }
+  {\color{o} \psi_{k_\xi}(\xi) }
+  {\color{z} \D{\psi_{l_\xi}(\xi)}{\xi} d\xi} + \\ + &
+  {\color{o} \mathcal{S}_{pl_\xi l_\tau} ( {\color{k} \pmb q_{l}}) }
+  {\color{z} \int_0^1 } 
+  {\color{o} \psi_{l_\tau}(\tau) }
+  {\color{z} \psi_{k_\tau}(\tau) d\tau} 
+  {\color{z} \int_0^1 }
+  {\color{o} \psi_{k_\xi}(\xi) }
+  {\color{z} {\psi_{l_\xi}(\xi)} d\xi}.
+\end{split}\end{align}
+
+\begin{align} \begin{split}
+     { \int_0^1 }
+     { \psi_{l_\tau}(\tau) }
+     { \D{\psi_{k_\tau}(\tau)}{\tau} d\tau } = 
+     \left. \mathsf{w}_{l_\tau} \D{\psi_{k_\tau}}{\tau} \right|_{\tau=\tau_{l_\tau}}
+\end{split}\end{align}
+
+\begin{align} \begin{split}
+  {\color{k} q_{pl}}
+  { \delta_{l_\xi k_\xi} \mathsf{w}_{k_\xi}} &
+  \left(
+     {\color{o} \psi_{l_\tau}(1) }
+     {\color{z} \psi_{k_\tau}(1) } - 
+     {\color{z}
+     \left. \mathsf{w}_{l_\tau} \D{\psi_{k_\tau}}{\tau} \right|_{\tau=\tau_{l_\tau}}
+     }
+  \right) = \\ =  &
+  {\color{f} w_{pk_\xi}}
+  {\color{z} \psi_{k_\tau}(0) }
+  {\color{z} \mathsf{w}_{k_\xi}} - 
+  {\color{o} \mathcal{F}_{pl}  ( {\color{k} \pmb q_{l}})}
+  \delta_{l_\tau k_\tau} \mathsf{w}_{k_\tau} 
+     \left. \mathsf{w}_{k_\xi} \D{\psi_{l_\xi}}{\xi} \right|_{\xi=\xi_{k_\xi}} + \\ + &
+  {\color{o} \mathcal{S}_{pl}  ( {\color{k} \pmb q_{l}})}
+  \delta_{l_\tau k_\tau} \mathsf{w}_{k_\tau} 
+  \delta_{l_\xi k_\xi} \mathsf{w}_{k_\xi} 
+\end{split}\end{align}
+
+\begin{equation}
+ K_{1,kl}
+ {\color{k} q_l } =
+ {\color{f} W_k } - K_{\xi, kl} 
+ {\color{o} \mathcal{F}_{pl}  ( {\color{k} \pmb q_{l}})} +
+ {\color{o} \mathcal{S}_{pk}  ( {\color{k} \pmb q_{k}})}
+\mathsf{w}_{k_\xi} 
+\mathsf{w}_{k_\tau} 
+\end{equation}
+
+\begin{equation}
+ {\color{k} q_m ^{(i+1)} } =
+ (K_{1}^{-1})_{mk} \left(
+ {\color{f} W_k } - K_{\xi, kl} 
+ {\color{o} \mathcal{F}_{pl}  ( {\color{k} \pmb q_{l}^{(i)} })} +
+ {\color{o} \mathcal{S}_{pk}  ( {\color{k} \pmb q_{k}^{(i)} })}
+\mathsf{w}_{k_\xi} 
+\mathsf{w}_{k_\tau} 
+ \right)
+\end{equation}
+
+\begin{equation}
+\boxed{
+ {\color{k} q_m ^{(i+1)} } =
+ (K_{1}^{-1})_{mk} 
+ {\color{f} W_k } -
+ (K_{1}^{-1} 
+ K_{\xi} )_{ml}
+ {\color{o} \mathcal{F}_{pl}  ( {\color{k} \pmb q_{l}^{(i)} })} +
+ (K_{1}^{-1})_{mk} 
+ {\color{o} \mathcal{S}_{pk}  ( {\color{k} \pmb q_{k}^{(i)} })}
+\mathsf{w}_{k_\xi} 
+\mathsf{w}_{k_\tau} 
+}
+\end{equation}
+
+\end{document}
