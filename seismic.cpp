@@ -32,6 +32,7 @@ namespace seismic {
       ftype wave = 0*sin(2*M_PI*x/Lx);
 
       u =  {wave, - wave/m.rho/m.cp};
+      u =  {1, 1};
     }
 
     auto Flux(){

@@ -35,12 +35,16 @@ struct DumbserMethod {
 
   ftype Lx {1.*N};
   ftype dx {1.};
-  ftype dt {.01}; ///???????????????
+  ftype dt {.02}; ///???????????????
   static constexpr int NBx {Mx+1};
   static constexpr int NBt {Mt+1};
   static constexpr int NQ {T::NQ};
 
-  bool is_source_cell(int ix){ return true ; };
+  bool is_source_cell(int ix){ 
+    if (ix==N/2) return true; 
+    return false ; 
+    //return false ; 
+  };
 
   arma::mat K1inv;
   arma::mat K2;
@@ -52,6 +56,7 @@ struct DumbserMethod {
   using Mesh = std::array<xDGdecomposition,N>; // cells[ix][ibx][iq]
 
   xtDGdecomposition left_cell_q; 
+  xtDGdecomposition saved_q; 
   T left_cell_left_flux; 
 
   Mesh cells {};
@@ -203,6 +208,11 @@ struct DumbserMethod {
     for (int ix=0; ix<N+2; ix++){ // Two extra updates to prepare periodic boundary data; if(ix> 0 (or 1)) is below to account for it 
 
       xtDGdecomposition q {ADER(cells[(ix+N)%N], istep, ix)}; 
+      if (ix==N+1) {
+        q = saved_q;
+      } else if (ix==0) {
+        saved_q = q;
+      }
 
       // dg-update. compute flux
       
@@ -215,9 +225,9 @@ struct DumbserMethod {
           T qL {boundary_1_project_at_ti(left_cell_q, ikt)};
           T qR {boundary_0_project_at_ti(q, ikt)};
           for (int iq=0; iq<NQ; iq++) {
-            //Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * CIRFlux(qL,qR,dx,dt)[iq];  // for linear systems 
+            Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * CIRFlux(qL,qR,dx,dt)[iq];  // for linear systems 
             //Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * RusanovFlux(qL,qR,dx,dt)[iq]; // for all systems
-            Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * LaxFlux(qL,qR,dx,dt)[iq];  // doesn't look well
+            //Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * LaxFlux(qL,qR,dx,dt)[iq];  // doesn't look well
           }
         }
         for (int iq=0; iq<NQ; iq++) {
@@ -235,10 +245,15 @@ struct DumbserMethod {
               for (int ilt=0; ilt<NBt; ilt++) {
                 int il {ilx*NBt + ilt}; 
                 T F = left_cell_q[il].Flux();
-                T S = left_cell_q[ikx*NBt + ilt].Source( dt*(istep + GAUSS_ROOTS[Mt][ilt]), dx*(ix + GAUSS_ROOTS[Mx][ikx]) );
                 for (int iq=0; iq<NQ; iq++){
                   addfluxp[iq] += F[iq] * GAUSS_WEIGHTS[Mt][ilt] * I4volflux(ilx,ikx);
-                  addsourcep[iq] += S[iq] * GAUSS_WEIGHTS[Mt][ilt] * GAUSS_WEIGHTS[Mx][ikx];
+                }
+                if (is_source_cell(ix)){ 
+                  T S = left_cell_q[ikx*NBt + ilt].Source( dt*(istep + GAUSS_ROOTS[Mt][ilt]), dx*((ix+N-1)%N + GAUSS_ROOTS[Mx][ikx]) );
+                  for (int iq=0; iq<NQ; iq++){
+                    addsourcep[iq] += S[iq] * GAUSS_WEIGHTS[Mt][ilt] * GAUSS_WEIGHTS[Mx][ikx];
+                  }
+                  fmt::print("source\n");
                 }
               }
             }
@@ -246,7 +261,7 @@ struct DumbserMethod {
                                                   left_cell_right_flux[iq] * POLYNOM_AT_ONE[Mx][ikx] - 
                                                   left_cell_left_flux[iq] * POLYNOM_AT_ZERO[Mx][ikx] -
                                                   dt * addfluxp[iq]
-                                                  - dt*dx - 0*dt * dx * addsourcep[iq]
+                                                  - dt * dx * addsourcep[iq]
                                                   );
           }
         }
@@ -334,11 +349,11 @@ void one_full_calc(){
 int main() {
   //fmt::print(" {:>8} {:>8} {:>8} {:>6} {:>4} {:>4} {:>4} {:>16} {:>16}\n","dx", "dt", "T", "N", "NQ", "NBx", "NBt", "L2", "Linf");
   {
-    DumbserMethod<0, 0, seismic::Seismic, 100> mesh_calc;
+    DumbserMethod<0, 0, seismic::Seismic, 64> mesh_calc;
     mesh_calc.init();
     int istep = 0;
     mesh_calc.print_all(istep);
-    for (; istep < 30; istep++) {
+    for (; istep < 16; istep++) {
       mesh_calc.update(istep);
     }
     //mesh_calc.ADER_update();
