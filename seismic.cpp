@@ -29,7 +29,7 @@ namespace seismic {
     void fromInit(ftype x, ftype Lx){
       //u =  {sin(2*M_PI*x/DEFINED_N), sin(2*M_PI*x/DEFINED_N)/sqrt(model.a)};
       Material m = get_material(material_index);
-      ftype wave = sin(2*M_PI*x/Lx);
+      ftype wave = 0*sin(2*M_PI*x/Lx);
 
       u =  {wave, - wave/m.rho/m.cp};
     }
@@ -42,8 +42,24 @@ namespace seismic {
       return w;
     }
 
-    auto Source(ftype t){
-      Seismic w {};
+
+    inline auto Eigenvector(int i){
+      auto m = get_material(material_index);
+      SolutionVector u{};
+      if (i==0) {
+        u[0] = m.rho; 
+        u[1] = -1./m.cp;
+      } else if (i==1) {
+        u[0] = m.rho; 
+        u[1] = 1./m.cp;
+      } 
+      return u;
+    }
+
+    auto Source(ftype t, ftype x){
+      Seismic w {Eigenvector(0)};
+      w[0] = 1;
+      w[1] = 1;
       return w;
     }
 

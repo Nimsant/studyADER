@@ -1,14 +1,16 @@
 \documentclass{article}
+\usepackage{geometry}
+\geometry{landscape, margin=5mm}
 \usepackage{amsmath}
 \usepackage{xcolor}
 \definecolor{k}{HTML}{F94144}
-\definecolor{o}{HTML}{F8961E}
+\definecolor{o}{HTML}{E8960E}
 \definecolor{zh}{HTML}{F9C74F}
 \definecolor{z}{HTML}{90BE6D}
 \definecolor{g}{HTML}{4D908E}
 \definecolor{s}{HTML}{277DA1}
-\definecolor{f}{HTML}{6B3D72}
-\definecolor{gray}{HTML}{F6F6F6}
+\definecolor{f}{HTML}{AA3DAA}
+\definecolor{gray}{HTML}{F0F0F6}
 %\definecolor{gray}{HTML}{E4E8EE}
 
 \newcommand{\D}[2]{\frac{\partial #1}{\partial #2}}
@@ -16,12 +18,93 @@
 \begin{document}
 \pagecolor{gray}
 
+
+\section{DG} \label{sec:DG}
+
+\begin{equation} \label{init}
+ \D {\color{o} u_p} {t} + 
+ \D {\color{o} F_p (\pmb u)}{x} = 
+  {\color{o} S_p(\pmb u, x, t)} \quad
+\end{equation}
+
+\begin{align}
+  \tau^{(k)}(t) = \frac{t-t^{(k)}}{\Delta t}; \\
+  \xi^{(m)}(x) = \frac{x-x^{(m)}}{\Delta x}. \\
+  \xi^{(m)} \equiv \xi; \quad  \tau^{(k)} \equiv \tau.
+\end{align}
+
+
+\begin{equation} 
+  \pmb F^* = \frac{\Delta t}{\Delta x} \pmb F; \quad
+  \pmb S^* =       \Delta t            \pmb S.
+\end{equation}
+
+\begin{equation} \label{DG}
+\left.
+\left.
+ \D {\color{o} u_p} {\tau} + 
+ \D {\color{o} F^*_p (\pmb u)}{\xi} = 
+  {\color{o} S^*_p(\pmb u, \xi(x), \tau(t))} \quad
+ \right| 
+ {\color{z} \cdot
+  \psi_{k_\xi} (\xi) }
+ \right| 
+ {\color{z} \cdot 
+  \int_0^1 d\xi
+  \int_0^1 d\tau}
+\end{equation}
+
+\begin{equation}
+  \int_0^1 \D {u_p}{\tau} d\tau = \left. u_p \right|_{\tau=1} -  \left. u_p \right|_{\tau=0}.
+\end{equation}
+
+\begin{align} 
+  \left. u_p \right|_{\tau=0} \approx 
+  {\color{f} \mathsf{w}_{pl_\xi} } 
+  {\color{o} \psi_{l_\xi} (\xi(x)) }\\
+  \left. u_p \right|_{\tau=1} \approx 
+  {\color{k} \mathsf{u}^+_{pl_\xi} } 
+  {\color{o} \psi_{l_\xi} (\xi(x)) }
+\end{align}
+
+\begin{equation}
+  {\color{k} \mathsf{u}^+_{pl_\xi} }
+  \langle {\color{o} \psi_{l_\xi} (\xi(x)) } 
+  {\color{z} \psi_{k_\xi} (\xi) } \rangle -
+  {\color{f} \mathsf{w}_{pl_\xi} } 
+  \langle {\color{o} \psi_{l_\xi} (\xi(x)) } 
+  {\color{z} \psi_{k_\xi} (\xi) } \rangle + 
+  {\color{z} \int_0^1 d\tau \left( 
+  \left.
+  {\color{s} \mathsf{F}_\text{right}  }
+  \psi_{k_\xi} 
+  \right|_{\xi=1}
+  - 
+  \left.
+  {\color{s} \mathsf{F}_\text{left}  }
+  \psi_{k_\xi} 
+  \right|_{\xi=0}
+  -
+  \int_0^1 
+  {\color{o} F_p (\pmb u)}
+  \D{\psi_{k_\xi}}{\xi}
+  d\xi
+  \right) = }
+ {\color{z}  
+  \int_0^1 d\xi
+  \psi_{k_\xi} (\xi) 
+  \int_0^1 d\tau}
+  {\color{o} S_p}.
+\end{equation}
+
+\section{ADER} \label{sec:ADER}
+
 \begin{equation} \label{localADERinit}
 \left.
 \left.
  \D {\color{o} u_p} {\tau} + 
  \D {\color{o} F^*_p (\pmb u)}{\xi} = 
- {\color{o} S_p} \quad
+ {\color{o} S^*_p} \quad
  \right| 
  {\color{z} \cdot
   \theta_k (\xi,\tau) }
@@ -92,10 +175,10 @@
  {\color{z} \cdot \int_0^1 \int_0^1 }
  \D {\color{o} u_p} {\tau} 
  {\color{z} \theta_k (\xi,\tau) }
- {\color{z} d\xi d\tau } &= \\ =
+ {\color{z} d\xi d\tau }  =
  {\color{k} q_{pl}}
  {\color{o} \psi_{l_\tau}(1) }
- {\color{z} \psi_{k_\tau}(1) } &
+ {\color{z} \psi_{k_\tau}(1) } 
  {\color{z} \int_0^1 }
  {\color{o} \psi_{l_\xi}(\xi) }
  {\color{z} \psi_{k_\xi}(\xi) d\xi} - 
@@ -103,9 +186,9 @@
  {\color{z} \psi_{k_\tau}(0) } 
  {\color{z} \int_0^1 }
  {\color{o} \psi_{l_\xi}(\xi) }
- {\color{z} \psi_{k_\xi}(\xi) d\xi} - \\ - 
+ {\color{z} \psi_{k_\xi}(\xi) d\xi} - 
  {\color{k} q_{pl}}
- {\color{z} \int_0^1 } &
+ {\color{z} \int_0^1 } 
  {\color{o} \psi_{l_\xi}(\xi) }
  {\color{z} \psi_{k_\xi}(\xi) d\xi} 
  {\color{z} \int_0^1 }
@@ -123,14 +206,14 @@
 Finally, from (\ref{localADERinit}), we get the system of $k_\xi \cdot k_\tau$ equations:
 \begin{align} \begin{split}
   {\color{k} q_{pl}}
-  {\color{z} \delta_{l_\xi k_\xi} \mathsf{w}_{k_\xi}} &
+  {\color{z} \delta_{l_\xi k_\xi} \mathsf{w}_{k_\xi}} 
   \left(
      {\color{o} \psi_{l_\tau}(1) }
      {\color{z} \psi_{k_\tau}(1) } - 
      {\color{z} \int_0^1 }
      {\color{o} \psi_{l_\tau}(\tau) }
      {\color{z} \D{\psi_{k_\tau}(\tau)}{\tau} d\tau}
-  \right) = \\ =  &
+  \right) = 
   {\color{f} w_{pl_\xi}}
   {\color{z} \psi_{k_\tau}(0) }
   {\color{z} \delta_{l_\xi k_\xi} \mathsf{w}_{k_\xi}} - 
@@ -140,14 +223,15 @@ Finally, from (\ref{localADERinit}), we get the system of $k_\xi \cdot k_\tau$ e
   {\color{z} \psi_{k_\tau}(\tau) d\tau} 
   {\color{z} \int_0^1 }
   {\color{o} \psi_{k_\xi}(\xi) }
-  {\color{z} \D{\psi_{l_\xi}(\xi)}{\xi} d\xi} + \\ + &
-  {\color{o} \mathcal{S}_{pl_\xi l_\tau} ( {\color{k} \pmb q_{l}}) }
+  {\color{z} \D{\psi_{l_\xi}(\xi)}{\xi} d\xi} + 
   {\color{z} \int_0^1 } 
   {\color{o} \psi_{l_\tau}(\tau) }
   {\color{z} \psi_{k_\tau}(\tau) d\tau} 
   {\color{z} \int_0^1 }
   {\color{o} \psi_{k_\xi}(\xi) }
-  {\color{z} {\psi_{l_\xi}(\xi)} d\xi}.
+  {\color{z} {\psi_{l_\xi}(\xi)}
+  {\color{o} \mathcal{S}_{pl_\xi l_\tau} ( {\color{k} \pmb q_{l}}, \xi, \tau) }
+  d\xi}.
 \end{split}\end{align}
 
 \begin{align} \begin{split}
@@ -159,20 +243,20 @@ Finally, from (\ref{localADERinit}), we get the system of $k_\xi \cdot k_\tau$ e
 
 \begin{align} \begin{split}
   {\color{k} q_{pl}}
-  { \delta_{l_\xi k_\xi} \mathsf{w}_{k_\xi}} &
+  { \delta_{l_\xi k_\xi} \mathsf{w}_{k_\xi}} 
   \left(
      {\color{o} \psi_{l_\tau}(1) }
      {\color{z} \psi_{k_\tau}(1) } - 
      {\color{z}
      \left. \mathsf{w}_{l_\tau} \D{\psi_{k_\tau}}{\tau} \right|_{\tau=\tau_{l_\tau}}
      }
-  \right) = \\ =  &
+  \right) = 
   {\color{f} w_{pk_\xi}}
   {\color{z} \psi_{k_\tau}(0) }
   {\color{z} \mathsf{w}_{k_\xi}} - 
   {\color{o} \mathcal{F}_{pl}  ( {\color{k} \pmb q_{l}})}
   \delta_{l_\tau k_\tau} \mathsf{w}_{k_\tau} 
-     \left. \mathsf{w}_{k_\xi} \D{\psi_{l_\xi}}{\xi} \right|_{\xi=\xi_{k_\xi}} + \\ + &
+     \left. \mathsf{w}_{k_\xi} \D{\psi_{l_\xi}}{\xi} \right|_{\xi=\xi_{k_\xi}} + 
   {\color{o} \mathcal{S}_{pl}  ( {\color{k} \pmb q_{l}})}
   \delta_{l_\tau k_\tau} \mathsf{w}_{k_\tau} 
   \delta_{l_\xi k_\xi} \mathsf{w}_{k_\xi} 
