@@ -35,13 +35,13 @@ struct DumbserMethod {
 
   ftype Lx {1.*N};
   ftype dx {1.};
-  ftype dt {.02}; ///???????????????
+  ftype dt {.1}; ///???????????????
   static constexpr int NBx {Mx+1};
   static constexpr int NBt {Mt+1};
   static constexpr int NQ {T::NQ};
 
   bool is_source_cell(int ix){ 
-    if (ix==N/2) return true; 
+    if (ix==N/2)  return true; 
     return false ; 
     //return false ; 
   };
@@ -155,11 +155,9 @@ struct DumbserMethod {
       xtDGdecomposition S {};
       for (int il=0; il<NBt*NBx; il++) {
         F[il] = q[il].Flux();
-        /*
         if (is_source_cell(ix)) {
           S[il] = q[il].Source( dt*(istep + GAUSS_ROOTS[Mt][il%NBt]), dx*(ix + GAUSS_ROOTS[Mx][il/NBt]) );
         }
-        */
       }
       for (int ikx=0; ikx<NBx; ikx++) {
         for (int ikt=0; ikt<NBt; ikt++) {
@@ -168,11 +166,9 @@ struct DumbserMethod {
             q[ik][iq] = 0; 
             for (int il=0; il<NBt*NBx; il++) { //int il {ilx*NBt + ilt}; 
               q[ik][iq] += K1inv(ik,il)*W[il][iq] - K2(ik,il)* (dt/dx)* F[il][iq];
-              /*
               if (is_source_cell(ix)) {
                 q[ik][iq] += dt * K1inv(ik,il) * S[il][iq] * GAUSS_WEIGHTS[Mx][il/NBt] * GAUSS_WEIGHTS[Mt][il%NBt];
               }
-              */
             }
           }
         }
@@ -249,11 +245,11 @@ struct DumbserMethod {
                   addfluxp[iq] += F[iq] * GAUSS_WEIGHTS[Mt][ilt] * I4volflux(ilx,ikx);
                 }
                 if (is_source_cell(ix)){ 
+                  fmt::print("add src\n");
                   T S = left_cell_q[ikx*NBt + ilt].Source( dt*(istep + GAUSS_ROOTS[Mt][ilt]), dx*((ix+N-1)%N + GAUSS_ROOTS[Mx][ikx]) );
                   for (int iq=0; iq<NQ; iq++){
                     addsourcep[iq] += S[iq] * GAUSS_WEIGHTS[Mt][ilt] * GAUSS_WEIGHTS[Mx][ikx];
                   }
-                  fmt::print("source\n");
                 }
               }
             }
@@ -349,11 +345,11 @@ void one_full_calc(){
 int main() {
   //fmt::print(" {:>8} {:>8} {:>8} {:>6} {:>4} {:>4} {:>4} {:>16} {:>16}\n","dx", "dt", "T", "N", "NQ", "NBx", "NBt", "L2", "Linf");
   {
-    DumbserMethod<0, 0, seismic::Seismic, 64> mesh_calc;
+    DumbserMethod<3, 3, seismic::Seismic, 100> mesh_calc;
     mesh_calc.init();
     int istep = 0;
     mesh_calc.print_all(istep);
-    for (; istep < 16; istep++) {
+    for (; istep < 300; istep++) {
       mesh_calc.update(istep);
     }
     //mesh_calc.ADER_update();
