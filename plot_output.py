@@ -43,12 +43,15 @@ for ifile, filename in enumerate(droplist):
     step  = np.heaviside(phi-data['N']/2,.5) 
     step += np.heaviside(-phi,.5) 
     step = 2*step -1
+      #model.U0 + model.Au * sin(phase), 
+      #model.V0 + model.Av * cos(phase)
     #ax.plot(x,step,
     #ax.plot(x,np.sin(2*np.pi*(x-1*data['T'])/data["N"]/data["dx"]),
     #ax.plot(x,phi,
-    #        lw=10, alpha=.2,
-    #        label=f"theor_{filename.split('_')[1]}",
-    #        color = pallete((ifile+0.5)/len(droplist)))
+    #ax.plot(x, 4 + 0.1 * np.sin((x-1*data['T'])* 2*np.pi/data["N"]/data["dx"]),
+            #lw=10, alpha=.2,
+            #label=f"theor_{filename.split('_')[1]}",
+            #color = pallete((ifile+0.5)/len(droplist)))
 
 ax.grid()
 ax.legend()

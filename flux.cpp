@@ -20,7 +20,7 @@ auto RusanovFlux(T uL, T uR, ftype dx, ftype dt){
   auto fL = uL.Flux();
   auto fR = uR.Flux();
   T f{};
-  for (int iq=0; iq<Burgers::NQ; iq++){
+  for (int iq=0; iq< T::NQ; iq++){
     f [iq]= (fR[iq]>fL[iq])?fR[iq]:fL[iq];
   }
   for (int iq=0; iq< T::NQ; iq++) {
