@@ -159,12 +159,7 @@ struct DumbserMethod {
         if (is_source_cell(ix)) {
           S[il] = q[il].Source( dt*(istep + GAUSS_ROOTS[Mt][il%NBt]), dx*(ix + GAUSS_ROOTS[Mx][il/NBt]) );
           for (int iq=0; iq<NQ; iq++) {
-            fmt::print("q[{}][{}] = {:16}\n", il, iq, q[il][iq]);
-            fmt::print("S[{}][{}] = {:16}\n", il, iq, S[il][iq]);
-            fmt::print("F[{}][{}] = {:16}\n", il, iq, F[il][iq]);
-            fmt::print("(dt/dx)*F[{}][{}] = {:16}\n", il, iq, (dt/dx)*F[il][iq]);
             S[il][iq] *= dt * GAUSS_WEIGHTS[Mx][il/NBt] * GAUSS_WEIGHTS[Mt][il%NBt];
-            fmt::print("dt*w*w*S[{}][{}] = {:16}\n", il, iq, S[il][iq]);
           }
         }
       }
@@ -183,13 +178,6 @@ struct DumbserMethod {
               if (is_source_cell(ix)) {
                 q[ik][iq] += K1inv(ik,il) * S[il][iq];
               }
-              if (ix==0){
-                fmt::print("iter={} ik={} iq={} il={}| {} = {} ++++ {}*{}\n", iter, ik, iq, il, 
-                    q[ik][iq],  
-                    K2(ik,il) * (dt/dx)* F[il][iq],
-                    S[il][iq], 
-                    K1inv(il,ik) );
-              }
             }
           }
         }
@@ -204,16 +192,6 @@ struct DumbserMethod {
 
     for (int ix=0; ix<N; ix++){
       xtDGdecomposition q {ADER(cells[(ix+N)%N], istep, ix)}; 
-      if (true) {
-        for (int ikx=0; ikx<NBx; ikx++) {
-          for (int ikt=0; ikt<NBt; ikt++) {
-            int ik {ikx*NBt + ikt}; 
-            for (int iq=0; iq<NQ; iq++) {
-              fmt::print("ikx={} ikt={} || q[{}][{}]={}\n",ik/NBt, ik%NBt, ik,iq,q[ik][iq]);
-            }
-          }
-        }
-      }
 
       //Temporary: collect back to u
       for (int iq=0; iq<NQ; iq++) {
@@ -237,7 +215,7 @@ struct DumbserMethod {
       xtDGdecomposition q {ADER(cells[(ix+N)%N], istep, ix)}; 
       if (ix==N+1) {
         q = saved_q;
-      } else if (ix==0) {
+      } else if (ix==1) {
         saved_q = q;
       }
 
@@ -256,9 +234,6 @@ struct DumbserMethod {
             //Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * RusanovFlux(qL,qR,dx,dt)[iq]; // for all systems
             Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * LaxFlux(qL,qR,dx,dt)[iq];  // doesn't look well
           }
-            if (ix==10 || ix==9 || ix==11) {
-              fmt::print(" {} {} {} Lax {} Lax\n", ix, qL.u, qR.u, LaxFlux(qL,qR,dx,dt).u);
-            }
         }
         for (int iq=0; iq<NQ; iq++) {
           left_cell_right_flux[iq] = Flux_integrated_dt[iq];
@@ -286,15 +261,18 @@ struct DumbserMethod {
                 }
               }
             }
-            if (ix==10) {
-              fmt::print("Fr={:16.4} Fl={:16.4} vf={:16.4} s={:16.4} u={}\n",left_cell_right_flux[iq] * POLYNOM_AT_ONE[Mx][ikx], left_cell_left_flux[iq] * POLYNOM_AT_ZERO[Mx][ikx], dt * addfluxp[iq],  dt * dx * addsourcep[iq], cells[(N+ix-1)%N][ikx][iq]);
+            if (ix==4) {
+              fmt::print("[{}][{}]: Fr={:16.4} Fl={:16.4} vf={:16.4} s={:16.4} u={}\n",ikx,iq,left_cell_right_flux[iq] * POLYNOM_AT_ONE[Mx][ikx], left_cell_left_flux[iq] * POLYNOM_AT_ZERO[Mx][ikx], dt * addfluxp[iq],  dt * dx * addsourcep[iq], cells[(N+ix-1)%N][ikx][iq]);
             }
             cells[(N+ix-1)%N][ikx][iq] -= (1/(dx*GAUSS_WEIGHTS[Mx][ikx])) * ( 
                                                   left_cell_right_flux[iq] * POLYNOM_AT_ONE[Mx][ikx] - 
                                                   left_cell_left_flux[iq] * POLYNOM_AT_ZERO[Mx][ikx] -
                                                   dt * addfluxp[iq]
-                                                  - dt * dx * addsourcep[iq]
+                                                  - dt * dx * addsourcep[iq]*0
                                                   );
+            if (ix==4) {
+              fmt::print("[{}][{}]: u={}\n",ikx,iq, cells[(N+ix-1)%N][ikx][iq]);
+            }
           }
         }
       }
@@ -381,15 +359,15 @@ void one_full_calc(){
 int main() {
   //fmt::print(" {:>8} {:>8} {:>8} {:>6} {:>4} {:>4} {:>4} {:>16} {:>16}\n","dx", "dt", "T", "N", "NQ", "NBx", "NBt", "L2", "Linf");
   {
-    DumbserMethod<2, 2, Eqs4testing, 1> mesh_calc;
+    DumbserMethod<2, 2, Eqs4testing, 100> mesh_calc;
     mesh_calc.init();
     int istep = 0;
     mesh_calc.print_all(istep);
-    for (; istep < 0; istep++) {
+    for (; istep < 1; istep++) {
       mesh_calc.update(istep);
     }
-    mesh_calc.ADER_update(istep);
-    istep++;
+    //mesh_calc.ADER_update(istep);
+    //istep++;
     mesh_calc.print_all(istep);
     mesh_calc.print_error(istep);
   }
