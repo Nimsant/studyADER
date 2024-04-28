@@ -253,22 +253,29 @@ struct DumbserMethod {
                 for (int iq=0; iq<NQ; iq++){
                   addfluxp[iq] += F[iq] * GAUSS_WEIGHTS[Mt][ilt] * I4volflux(ilx,ikx);
                 }
-                if (is_source_cell((ix+N-1)%N)){ 
-                  T S = left_cell_q[ikx*NBt + ilt].Source( dt*(istep + GAUSS_ROOTS[Mt][ilt]), dx*((ix+N-1)%N + GAUSS_ROOTS[Mx][ikx]) );
-                  for (int iq=0; iq<NQ; iq++){
-                    addsourcep[iq] += S[iq] * GAUSS_WEIGHTS[Mt][ilt] * GAUSS_WEIGHTS[Mx][ikx];
-                  }
+              }
+            }
+            if (is_source_cell((ix+N-1)%N)){ 
+              for (int ilt=0; ilt<NBt; ilt++) {
+                T S = left_cell_q[ikx*NBt + ilt].Source( dt*(istep + GAUSS_ROOTS[Mt][ilt]), dx*((ix+N-1)%N + GAUSS_ROOTS[Mx][ikx]) );
+                for (int iq=0; iq<NQ; iq++){
+                  addsourcep[iq] += S[iq] * GAUSS_WEIGHTS[Mt][ilt] * GAUSS_WEIGHTS[Mx][ikx];
                 }
               }
             }
             if (ix==4) {
-              fmt::print("[{}][{}]: Fr={:16.4} Fl={:16.4} vf={:16.4} s={:16.4} u={}\n",ikx,iq,left_cell_right_flux[iq] * POLYNOM_AT_ONE[Mx][ikx], left_cell_left_flux[iq] * POLYNOM_AT_ZERO[Mx][ikx], dt * addfluxp[iq],  dt * dx * addsourcep[iq], cells[(N+ix-1)%N][ikx][iq]);
+              fmt::print("[{}][{}]: Fr={:16.4} Fl={:16.4} vf={:16.4} s={:16.4} u={}\n",ikx,iq,
+                  left_cell_right_flux[iq] * POLYNOM_AT_ONE[Mx][ikx], 
+                  - left_cell_left_flux[iq] * POLYNOM_AT_ZERO[Mx][ikx], 
+                  - dt * addfluxp[iq],  
+                  dt * dx * addsourcep[iq], 
+                  cells[(N+ix-1)%N][ikx][iq]);
             }
             cells[(N+ix-1)%N][ikx][iq] -= (1/(dx*GAUSS_WEIGHTS[Mx][ikx])) * ( 
                                                   left_cell_right_flux[iq] * POLYNOM_AT_ONE[Mx][ikx] - 
                                                   left_cell_left_flux[iq] * POLYNOM_AT_ZERO[Mx][ikx] -
                                                   dt * addfluxp[iq]
-                                                  - dt * dx * addsourcep[iq]*0
+                                                  - dt * dx * addsourcep[iq]
                                                   );
             if (ix==4) {
               fmt::print("[{}][{}]: u={}\n",ikx,iq, cells[(N+ix-1)%N][ikx][iq]);
@@ -359,7 +366,7 @@ void one_full_calc(){
 int main() {
   //fmt::print(" {:>8} {:>8} {:>8} {:>6} {:>4} {:>4} {:>4} {:>16} {:>16}\n","dx", "dt", "T", "N", "NQ", "NBx", "NBt", "L2", "Linf");
   {
-    DumbserMethod<2, 2, Eqs4testing, 100> mesh_calc;
+    DumbserMethod<3, 3, Eqs4testing, 100> mesh_calc;
     mesh_calc.init();
     int istep = 0;
     mesh_calc.print_all(istep);
