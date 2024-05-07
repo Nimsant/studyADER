@@ -34,7 +34,7 @@ for ifile, filename in enumerate(droplist):
         for ib in range(data['NBx']):
           y += row[f'u0{ib}']*bp[ib](xi)
         ax.plot(x,y,
-                lw = 1,
+                lw = 1 if '-' not in filename else 3,
                 color = pallete((ifile+0.5)/len(droplist)),
                 label = '_'*(irow!=0)+f"{filename.split('_')[1]}")
     ax.set_title(f"{filename}")

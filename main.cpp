@@ -9,7 +9,7 @@
 using ftype=double;
 
 #define MAX_MORDER 10
-#define MAX_ITERS 1
+#define MAX_ITERS 10
 
 template <int M> ftype polynominal(int l, ftype x){
 #include "gen_polynomials_l.cpp"
@@ -64,6 +64,7 @@ struct DumbserMethod {
 
   DumbserMethod () :
     left_cell_q(), 
+    saved_q(),
     left_cell_left_flux() {
       // Init K1inv, K2, I
       ftype K1[NBt*NBx][NBt*NBx];
@@ -98,6 +99,12 @@ struct DumbserMethod {
       }
   };
 
+  void set_Lx_Courant(ftype _Lx, ftype courant){
+    Lx = _Lx; 
+    dx = Lx/N;
+    dt = courant*dx;
+  }
+
   // For Flux
   //
   T boundary_0_project_at_ti(xtDGdecomposition q, int ikt) {
@@ -121,11 +128,11 @@ struct DumbserMethod {
     return qL;
   }
 
-  xDGdecomposition TakeRootValue (int ix, ftype dx){
+  xDGdecomposition TakeRootValue (int ix, ftype dx, ftype t = 0){
     xDGdecomposition U {}; 
     for (int ibx=0; ibx<NBx; ibx++) {
       ftype xikx = dx * (ix + GAUSS_ROOTS[Mx][ibx]);
-      T udata; udata.fromInit(xikx, Lx);
+      T udata; udata.fromInit(xikx, Lx, t);
       for (int iq=0; iq<NQ; iq++) {
         U[ibx][iq] = udata[iq];
       }
@@ -133,9 +140,9 @@ struct DumbserMethod {
     return U; 
   };
 
-  void init() {
+  void init(ftype t = 0) {
     for (int ix; ix<N; ix++){
-      cells[ix] = TakeRootValue(ix, dx);
+      cells[ix] = TakeRootValue(ix, dx, t);
     }
   };
 
@@ -164,10 +171,6 @@ struct DumbserMethod {
         }
       }
 
-      if (ix==0){
-        K1inv.print("K1inv");
-        I4volflux.print("I");
-      }
       for (int ikx=0; ikx<NBx; ikx++) {
         for (int ikt=0; ikt<NBt; ikt++) {
           int ik {ikx*NBt + ikt}; 
@@ -231,8 +234,8 @@ struct DumbserMethod {
           T qR {boundary_0_project_at_ti(q, ikt)};
           for (int iq=0; iq<NQ; iq++) {
             //Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * CIRFlux(qL,qR,dx,dt)[iq];  // for linear systems 
-            //Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * RusanovFlux(qL,qR,dx,dt)[iq]; // for all systems
-            Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * LaxFlux(qL,qR,dx,dt)[iq];  // doesn't look well
+            Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * RusanovFlux(qL,qR,dx,dt)[iq]; // for all systems
+            //Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * LaxFlux(qL,qR,dx,dt)[iq];  // doesn't look well
           }
         }
         for (int iq=0; iq<NQ; iq++) {
@@ -263,23 +266,12 @@ struct DumbserMethod {
                 }
               }
             }
-            if (ix==4) {
-              fmt::print("[{}][{}]: Fr={:16.4} Fl={:16.4} vf={:16.4} s={:16.4} u={}\n",ikx,iq,
-                  left_cell_right_flux[iq] * POLYNOM_AT_ONE[Mx][ikx], 
-                  - left_cell_left_flux[iq] * POLYNOM_AT_ZERO[Mx][ikx], 
-                  - dt * addfluxp[iq],  
-                  dt * dx * addsourcep[iq], 
-                  cells[(N+ix-1)%N][ikx][iq]);
-            }
             cells[(N+ix-1)%N][ikx][iq] -= (1/(dx*GAUSS_WEIGHTS[Mx][ikx])) * ( 
                                                   left_cell_right_flux[iq] * POLYNOM_AT_ONE[Mx][ikx] - 
                                                   left_cell_left_flux[iq] * POLYNOM_AT_ZERO[Mx][ikx] -
                                                   dt * addfluxp[iq]
                                                   - dt * dx * addsourcep[iq]
                                                   );
-            if (ix==4) {
-              fmt::print("[{}][{}]: u={}\n",ikx,iq, cells[(N+ix-1)%N][ikx][iq]);
-            }
           }
         }
       }
@@ -366,17 +358,21 @@ void one_full_calc(){
 int main() {
   //fmt::print(" {:>8} {:>8} {:>8} {:>6} {:>4} {:>4} {:>4} {:>16} {:>16}\n","dx", "dt", "T", "N", "NQ", "NBx", "NBt", "L2", "Linf");
   {
-    DumbserMethod<3, 3, Eqs4testing, 100> mesh_calc;
+    DumbserMethod<0, 0, eqs4testing::Eqs4testing, 32> mesh_calc;
+    mesh_calc.set_Lx_Courant(1,.5);
+    eqs4testing::model.set(mesh_calc.Lx);
     mesh_calc.init();
     int istep = 0;
     mesh_calc.print_all(istep);
-    for (; istep < 1; istep++) {
+    for (; istep < 16; istep++) {
       mesh_calc.update(istep);
     }
     //mesh_calc.ADER_update(istep);
     //istep++;
     mesh_calc.print_all(istep);
-    mesh_calc.print_error(istep);
+    mesh_calc.init(istep*mesh_calc.dt);
+    mesh_calc.print_all(-istep);
+    //mesh_calc.print_error(istep);
   }
 
 
