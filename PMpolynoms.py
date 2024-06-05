@@ -55,7 +55,7 @@ def MakePolynomialRoots():
   for Morder in range(MAX_MORDER):
     pl = polynomial_basis(Morder)
     output = ', '.join(
-            [f"{i:.17g}" for i in pl['roots']] +\
+            [f"{i:.19g}" for i in pl['roots']] +\
             ['0' for i in range(MAX_MORDER+1 - len(pl['roots']))]
             )
     s += f"    {{ {output} }},\n"

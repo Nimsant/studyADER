@@ -18,7 +18,56 @@
 \begin{document}
 %\pagecolor{gray}
 
+\section{Polynomials}
 
+$P_M$ is the order $M$ (shifted) Legendre polynomial on the range $[0,1]$.
+
+It has $M$ roots: $0<\xi_i<1$, $i=0..M-1$.
+
+Gauss Legendre quadrature can be used:
+
+\begin{equation}
+  \int_0^1 d\xi f(\xi) = \sum_{i=0}^{M-1} w_i f(\xi_i) 
+\end{equation}
+
+It is accurate if $f(\xi)$ is a polynomial of order less or equal to $2M-1$. 
+
+Let us construct $M$ Lagrange polynomials $\psi_i$, $i=0..M-1$, interpolating the roots:
+\begin{equation}
+  \psi_j(\xi_i) = \delta_{ij}.
+\end{equation}
+Found as
+\begin{equation}
+  \psi_j(\xi) = \prod_{i\ne j} \frac{x-x_i}{x_j-x_i}.
+\end{equation}
+Their order is $M-1$.
+
+They can be integrated:
+\begin{equation}
+  \int_0^1 d\xi \psi_l(\xi) = \sum_{i=0}^{M-1} w_i \psi_l(\xi_i)  = w_l
+\end{equation}
+and this is how the Gauss weights are found. 
+
+Orthogonality works as
+\begin{equation}
+  \int_0^1 d\xi \psi_l(\xi) \psi_k(\xi) = \sum_{i=0}^{M-1} w_i \psi_l(\xi_i) \psi_k(\xi_i) = w_l \delta_{kl}.
+\end{equation}
+
+And one more useful expression:
+\begin{equation}
+  \int_0^1 d\xi \D{\psi_l(\xi)}\xi \psi_k(\xi) = \sum_{i=0}^{M-1} w_i \left. \D{\psi_l}{\xi}\right|_{\xi_i} \psi_k(\xi_i) = w_k \left. \D{\psi_l}{\xi}\right|_{\xi_k}.
+\end{equation}
+
+To project a function $f(\xi)$ onto the basis
+\begin{equation}
+  f(\xi) = \sum_{l=0}^{M-1} f_l \psi(\xi) 
+\end{equation}
+the coefficients are found as
+\begin{equation}
+  f_l = f(\xi_l).
+\end{equation}
+
+\clearpage
 \section{DG} \label{sec:DG}
 
 \begin{equation} \label{init}
@@ -54,7 +103,7 @@
   \int_0^1 d\tau}
 \end{equation}
 
-\begin{equation}
+lk\begin{equation}
   \int_0^1 \D {u_p}{\tau} d\tau = \left. u_p \right|_{\tau=1} -  \left. u_p \right|_{\tau=0}.
 \end{equation}
 
@@ -97,6 +146,33 @@
   {\color{o} S_p}.
 \end{equation}
 
+\begin{equation}
+  {\color{k} \mathsf{u}^+_{pk_\xi} }
+  w_{k_\xi}  = 
+  {\color{f} \mathsf{w}_{pk_\xi} } 
+  w_{k_\xi}  - 
+  {\color{z} \int_0^1 d\tau \left( 
+  \left.
+  {\color{s} \mathsf{F}_\text{right}  }
+  \psi_{k_\xi} 
+  \right|_{\xi=1}
+  - 
+  \left.
+  {\color{s} \mathsf{F}_\text{left}  }
+  \psi_{k_\xi} 
+  \right|_{\xi=0}
+  -
+  \int_0^1 
+  {\color{o} F_p (\pmb u)}
+  \D{\psi_{k_\xi}}{\xi}
+  d\xi
+  \right) + }
+ {\color{z}  
+  \int_0^1 d\xi
+  \psi_{k_\xi} (\xi) 
+  \int_0^1 d\tau}
+  {\color{o} S_p}.
+\end{equation}
 \section{ADER} \label{sec:ADER}
 
 \begin{equation} \label{localADERinit}

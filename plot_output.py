@@ -15,7 +15,7 @@ fig, ax = plt.subplots()
 ax.set_facecolor((0.5, 0.5, 0.5))
 
 Npoints = 400
-for ifile, filename in enumerate(droplist):
+for ifile, filename in enumerate(sorted(droplist)):
     with open(filename) as f:
         s = f.readline()[1:]
         data = json.loads(s)

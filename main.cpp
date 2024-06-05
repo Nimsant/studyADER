@@ -31,18 +31,23 @@ template <int M> ftype deriv_polynomial(int l, ftype x){
 #include "flux.cpp"
 #include "eqs4testing.cpp"
 
+
+//#define dt 0.01
+
 template<int Mx, int Mt, typename T, int N>
 struct DumbserMethod {
 
   ftype Lx {1.*N};
   ftype dx {1.};
-  ftype dt {.1}; ///???????????????
+  
+  //static constexpr ftype dt {.01}; ///???????????????
+  ftype dt {.01}; ///???????????????
   static constexpr int NBx {Mx+1};
   static constexpr int NBt {Mt+1};
   static constexpr int NQ {T::NQ};
 
   bool is_source_cell(int ix){ 
-    return true ; 
+    return false ; 
     if (ix==N/2)  return true; 
     return false ; 
   };
@@ -97,12 +102,16 @@ struct DumbserMethod {
           I4volflux(ilx,ikx) = GAUSS_WEIGHTS[Mx][ilx] * deriv_polynomial<Mx>(ikx, GAUSS_ROOTS[Mx][ilx]); 
         }
       }
+      double checksum = 0;
+      for (int ikx=0; ikx<NBx; ikx++) {
+        checksum += GAUSS_WEIGHTS[Mx][ikx];
+      }
   };
 
   void set_Lx_Courant(ftype _Lx, ftype courant){
     Lx = _Lx; 
     dx = Lx/N;
-    dt = courant*dx;
+    //dt = courant*dx;
   }
 
   // For Flux
@@ -167,6 +176,7 @@ struct DumbserMethod {
           S[il] = q[il].Source( dt*(istep + GAUSS_ROOTS[Mt][il%NBt]), dx*(ix + GAUSS_ROOTS[Mx][il/NBt]) );
           for (int iq=0; iq<NQ; iq++) {
             S[il][iq] *= dt * GAUSS_WEIGHTS[Mx][il/NBt] * GAUSS_WEIGHTS[Mt][il%NBt];
+            //fmt::print("{} {}     ||S||    {:20.18}\n",il,iq,S[il][iq]);
           }
         }
       }
@@ -180,6 +190,7 @@ struct DumbserMethod {
               q[ik][iq] += K1inv(ik,il)*W[il][iq] - K2(ik,il) * (dt/dx) * F[il][iq];
               if (is_source_cell(ix)) {
                 q[ik][iq] += K1inv(ik,il) * S[il][iq];
+                //fmt::print("{} {}     ||q||    {:20.18}\n",ik,iq,q[ik][iq]);
               }
             }
           }
@@ -332,7 +343,7 @@ struct DumbserMethod {
     for (int ix=0; ix<N; ix++){
       for (int iq=0; iq<NQ; iq++) {
         for (int ibx=0; ibx<NBx; ibx++) {
-          fmt::print(file,"{:20.10g}", cells[ix][ibx][iq]);
+          fmt::print(file,"{:30.18g}", cells[ix][ibx][iq]);
         }
       }
       fmt::print(file,"\n");
@@ -358,13 +369,14 @@ void one_full_calc(){
 int main() {
   //fmt::print(" {:>8} {:>8} {:>8} {:>6} {:>4} {:>4} {:>4} {:>16} {:>16}\n","dx", "dt", "T", "N", "NQ", "NBx", "NBt", "L2", "Linf");
   {
-    DumbserMethod<0, 0, eqs4testing::Eqs4testing, 32> mesh_calc;
-    mesh_calc.set_Lx_Courant(1,.5);
+    DumbserMethod<4, 4, seismic::Seismic, 10> mesh_calc;
+    mesh_calc.set_Lx_Courant(1,.00001);
     eqs4testing::model.set(mesh_calc.Lx);
     mesh_calc.init();
     int istep = 0;
     mesh_calc.print_all(istep);
-    for (; istep < 16; istep++) {
+    
+    for (; istep < 100; istep++) {
       mesh_calc.update(istep);
     }
     //mesh_calc.ADER_update(istep);

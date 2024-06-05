@@ -31,13 +31,15 @@ namespace seismic {
       return u.at(i);
     }
 
-    void fromInit(ftype x, ftype Lx){
+    void fromInit(ftype x, ftype Lx, ftype t =0){
       //u =  {sin(2*M_PI*x/DEFINED_N), sin(2*M_PI*x/DEFINED_N)/sqrt(model.a)};
       Material m = get_material(material_index);
-      ftype wave = sin(2*M_PI*x/Lx);
+      ftype k = 2*M_PI/Lx;
+      ftype omega = k*m.cp;
+      ftype wave = sin(k*x - omega*t);
 
       u =  {wave, - wave/m.rho/m.cp};
-      u =  {0, 0};
+      //u =  {1, 1};
     }
 
     auto Flux(){
@@ -68,6 +70,7 @@ namespace seismic {
       //fmt::print("{:16} {:16}\n",t,s);
       w[0] *= s;
       w[1] *= s;
+      w = {0,0};
       return w;
     }
 
