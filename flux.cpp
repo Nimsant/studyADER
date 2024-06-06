@@ -32,7 +32,7 @@ auto RusanovFlux(T uL, T uR, ftype dx, ftype dt){
 template<typename T>
 auto Amod(T u) {
   auto Aflux = u.Amatrix();
-  Aflux.print("A");
+  //Aflux.print("A");
   arma::cx_vec eigval;
   arma::cx_mat cx_eigvec;
   eig_gen(eigval,cx_eigvec, Aflux);

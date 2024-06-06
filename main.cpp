@@ -33,7 +33,6 @@ template <int M> ftype deriv_polynomial(int l, ftype x){
 #include "eqs4testing.cpp"
 
 
-//#define dt 0.01
 
 template<int Mx, int Mt, typename T, int N>
 struct DumbserMethod {
@@ -111,7 +110,7 @@ struct DumbserMethod {
     Lx = _Lx; 
     dx = Lx/N;
     dt = courant*dx;
-    fmt::print("Lx = {}; Nx = {}; dx = {}, dt = {}\n", Lx, N, dx, dt);
+    //fmt::print("#Lx = {}; Nx = {}; dx = {}, dt = {}\n", Lx, N, dx, dt);
   }
 
   // For Flux
@@ -137,7 +136,7 @@ struct DumbserMethod {
     return qL;
   }
 
-  xDGdecomposition TakeRootValue (int ix, ftype dx, ftype t = 0){
+  xDGdecomposition TakeRootValue (int ix, ftype t = 0){
     xDGdecomposition U {}; 
     for (int ibx=0; ibx<NBx; ibx++) {
       ftype xikx = dx * (ix + GAUSS_ROOTS[Mx][ibx]);
@@ -150,8 +149,8 @@ struct DumbserMethod {
   };
 
   void init(ftype t = 0) {
-    for (int ix; ix<N; ix++){
-      cells[ix] = TakeRootValue(ix, dx, t);
+    for (int ix=0; ix<N; ix++){
+      cells[ix] = TakeRootValue(ix, t);
     }
   };
 
@@ -245,8 +244,6 @@ struct DumbserMethod {
           T qR {boundary_0_project_at_ti(q, ikt)};
           for (int iq=0; iq<NQ; iq++) {
             //Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * CIRFlux(qL,qR,dx,dt)[iq];  // for linear systems 
-            //Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * RusanovFlux(qL,qR,dx,dt)[iq]; // for all systems
-            //Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * LaxFlux(qL,qR,dx,dt)[iq];  // doesn't look well
             Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * SolomonOsherFlux(qL,qR,dx,dt)[iq]; // for all systems
           }
         }
@@ -300,13 +297,23 @@ struct DumbserMethod {
     //std::string funcfilename = fmt::format("error_{}.dat",istep);
     //std::FILE* file = std::fopen( funcfilename.c_str(), "w");
     //std::fclose(file);
+    /*
+    for (int ibx=0; ibx<NBx; ibx++) {
+      ftype xikx = dx * (ix + GAUSS_ROOTS[Mx][ibx]);
+      T udata; udata.fromInit(xikx, Lx, t);
+      for (int iq=0; iq<NQ; iq++) {
+        U[ibx][iq] = udata[iq];
+      }
+    }
+    */
     
     ftype L2 {0};
     ftype Linf {0};
     for (int ix=0; ix<N; ix++){
       for (int ibx=0; ibx<NBx; ibx++) {
-        ftype xikx = dx * (ix + GAUSS_ROOTS[Mx][ibx]) - istep * dt ;
-        T udata; udata.fromInit(xikx, Lx);
+        ftype xikx = dx * (ix + GAUSS_ROOTS[Mx][ibx]) - 0 * istep * dt ;
+        
+        T udata; udata.fromInit(xikx, Lx, istep*dt);
         for (int iq=0; iq<NQ; iq++) {
           ftype t = udata[iq] - cells[ix][ibx][iq];
           L2 += t*t;
@@ -317,9 +324,9 @@ struct DumbserMethod {
     }
     L2 = sqrt(L2)/N;
 
-    fmt::print(" {:8}",  dx);
-    fmt::print(" {:8}",  dt);
-    fmt::print(" {:8}",  istep*dt);
+    fmt::print(" {:8.5}",  dx);
+    fmt::print(" {:8.5}",  dt);
+    fmt::print(" {:8.5}",  istep*dt);
     fmt::print(" {:6}",  N);
     fmt::print(" {:4}",  NQ);
     fmt::print(" {:4}",  NBx);
@@ -335,7 +342,7 @@ struct DumbserMethod {
     fmt::print(file,"# {{");
     fmt::print(file,"  {:?}: {},", "dx", dx);
     fmt::print(file,"  {:?}: {},", "dt", dt);
-    fmt::print(file,"  {:?}: {},", "T", istep*dt);
+    fmt::print(file,"  {:?}: {},", "NT", istep);
     fmt::print(file,"  {:?}: {},", "N", N);
     fmt::print(file,"  {:?}: {},", "NQ", NQ);
     fmt::print(file,"  {:?}: {},", "NBx", NBx);
@@ -354,40 +361,70 @@ struct DumbserMethod {
 };
 
 
+template<int MX, int MT>
+void several_full_calc(ftype courant){
+  one_full_calc<MX,MT,4>(courant);
+  one_full_calc<MX,MT,8>(courant);
+  one_full_calc<MX,MT,16>(courant);
+  one_full_calc<MX,MT,32>(courant);
+}
+
 
 template<int MX, int MT, int N>
-void one_full_calc(){
+void one_full_calc(ftype courant){
     DumbserMethod<MX, MT, seismic::Seismic, N> mesh_calc;
+    mesh_calc.set_Lx_Courant(1,courant);
     mesh_calc.init();
-    ftype courant = mesh_calc.dt * seismic::get_material(0).cp / mesh_calc.dx;
     int istep = 0;
-    for (; istep < N/courant; istep++) {
-      mesh_calc.update();
+    int Nperiod = floor(mesh_calc.Lx/1/mesh_calc.dt + .5);
+    for (; istep < Nperiod; istep++) {
+      mesh_calc.update(istep);
     }
     mesh_calc.print_error(istep);
 }
 
 int main() {
-  //fmt::print(" {:>8} {:>8} {:>8} {:>6} {:>4} {:>4} {:>4} {:>16} {:>16}\n","dx", "dt", "T", "N", "NQ", "NBx", "NBt", "L2", "Linf");
-  {
-    DumbserMethod<4, 4, seismic::Seismic, 10> mesh_calc;
-    mesh_calc.set_Lx_Courant(1,.01);
-    eqs4testing::model.set(mesh_calc.Lx);
-    mesh_calc.init();
-    int istep = 0;
-    mesh_calc.print_all(istep);
-    
-    int Nperiod = mesh_calc.Lx/1/mesh_calc.dt;
-    fmt::print("Nperiod = {}\n", Nperiod);
-    for (; istep < Nperiod; istep++) {
-      mesh_calc.update(istep);
+  fmt::print(" {:>8} {:>8} {:>8} {:>6} {:>4} {:>4} {:>4} {:>16} {:>16}\n","dx", "dt", "T", "N", "NQ", "NBx", "NBt", "L2", "Linf");
+    for (const auto courant_i : {1., .5, .1, .05, .01, 0.005, .001}) {
+      several_full_calc<0,0>(courant_i);
+
+      several_full_calc<1,1>(courant_i);
+      several_full_calc<1,0>(courant_i);
+
+      several_full_calc<2,0>(courant_i);
+      several_full_calc<2,1>(courant_i);
+      several_full_calc<2,2>(courant_i);
+
+      several_full_calc<3,3>(courant_i);
+      several_full_calc<4,4>(courant_i);
+      several_full_calc<5,5>(courant_i);
+      several_full_calc<6,6>(courant_i);
     }
-    //mesh_calc.ADER_update(istep);
-    //istep++;
-    mesh_calc.print_all(istep);
-    mesh_calc.init(istep*mesh_calc.dt);
-    mesh_calc.print_all(-istep);
+    /*
+  {
+
+      DumbserMethod<4, 4, seismic::Seismic, 10> mesh_calc;
+      mesh_calc.set_Lx_Courant(1,courant_i);
+
+      //eqs4testing::model.set(mesh_calc.Lx);// >>>>>>>>>>>>>>> ? <<<<<<<<<<<<<<<<
+
+      mesh_calc.init();
+      int istep = 0;
+      //mesh_calc.print_all(istep);
+      
+      int Nperiod = floor(mesh_calc.Lx/1/mesh_calc.dt + .5);
+      for (; istep < Nperiod; istep++) {
+        mesh_calc.update(istep);
+      }
+      //mesh_calc.ADER_update(istep);
+      //istep++;
+      //mesh_calc.print_all(istep);
+      //mesh_calc.init(istep*mesh_calc.dt);
+      //mesh_calc.print_all(-istep);
+      mesh_calc.print_error(istep);
+    }
   }
+  */
 
   /*
    gas::Gas u; 

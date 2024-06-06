@@ -4,7 +4,7 @@ import pandas as pd
 what2plot = "Linf"
 xaxis = 'N'
 xfilter = 'NBx'
-filtervalues = range(1,5)
+filtervalues = range(1,9)
 
 df = pd.read_csv("run.log",
     comment="#",
@@ -15,13 +15,13 @@ df = pd.read_csv("run.log",
 print(df)
 
 def palitra(i):
- return ['r','g','b','y'][i]
+ return ['r','g','b','y','c','m','k','fuchsia'][i]
 Nxset = [int(i) for i in list(set(df[xaxis]))]
 x = [i for i in Nxset]
 fig,ax = plt.subplots()
 ax.set_title(f"{what2plot}")
 for  iM, M in enumerate(filtervalues):
-    y = [i**(-(M))*9e-1 for i in x]
+    y = [i**(-(M))*6e-3 for i in x]
     ax.plot(x,y,lw=30,color=palitra(iM),alpha=0.1)
     df[df[xfilter]==M].plot(x=xaxis,y=what2plot,
             ax=ax,
@@ -29,6 +29,7 @@ for  iM, M in enumerate(filtervalues):
             color=palitra(iM)
             
             )
+ax.set_ylim(1e-18, 1e1)
 plt.xscale('log')
 plt.yscale('log')
 plt.show()
