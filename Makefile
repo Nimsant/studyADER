@@ -15,7 +15,7 @@ N?=8
 NT?=1
 
 
-MODELS = Burgers.cpp Advection.cpp seismic.cpp eqs4testing.cpp
+MODELS = Burgers.cpp Advection.cpp seismic.cpp eqs4testing.cpp gas.cpp
 
 FLUX = flux.cpp
 

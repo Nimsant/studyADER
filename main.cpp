@@ -26,6 +26,7 @@ template <int M> ftype deriv_polynomial(int l, ftype x){
 #include "gen_roots.cpp"
 
 #include "seismic.cpp"
+#include "gas.cpp"
 #include "Advection.cpp"
 #include "Burgers.cpp"
 #include "flux.cpp"
@@ -243,9 +244,10 @@ struct DumbserMethod {
           T qL {boundary_1_project_at_ti(left_cell_q, ikt)};
           T qR {boundary_0_project_at_ti(q, ikt)};
           for (int iq=0; iq<NQ; iq++) {
-            Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * CIRFlux(qL,qR,dx,dt)[iq];  // for linear systems 
+            //Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * CIRFlux(qL,qR,dx,dt)[iq];  // for linear systems 
             //Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * RusanovFlux(qL,qR,dx,dt)[iq]; // for all systems
             //Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * LaxFlux(qL,qR,dx,dt)[iq];  // doesn't look well
+            Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * SolomonOsherFlux(qL,qR,dx,dt)[iq]; // for all systems
           }
         }
         for (int iq=0; iq<NQ; iq++) {
@@ -368,6 +370,7 @@ void one_full_calc(){
 int main() {
   //fmt::print(" {:>8} {:>8} {:>8} {:>6} {:>4} {:>4} {:>4} {:>16} {:>16}\n","dx", "dt", "T", "N", "NQ", "NBx", "NBt", "L2", "Linf");
   {
+    /*
     DumbserMethod<4, 4, seismic::Seismic, 10> mesh_calc;
     mesh_calc.set_Lx_Courant(1,.01);
     eqs4testing::model.set(mesh_calc.Lx);
@@ -385,9 +388,16 @@ int main() {
     mesh_calc.print_all(istep);
     mesh_calc.init(istep*mesh_calc.dt);
     mesh_calc.print_all(-istep);
-    //mesh_calc.print_error(istep);
+    */
+
   }
 
+   gas::Gas u; 
+   u.fromInit(0,1,0);
+   auto K0 = u.Eigenvector(0);
+   auto K1 = u.Eigenvector(1);
+   auto f = SolomonOsherFlux(u,u,1,1);
+   fmt::print("{} {}\n", u.u, K0, K1);
 
    fmt::print("#Finished\n");
    return 0;
