@@ -64,6 +64,16 @@ namespace seismic {
       return u;
     }
 
+    auto Amatrix() {
+      arma::mat Aflux(NQ, NQ);
+      auto m = get_material(material_index);
+      Aflux(0,0) = 0;
+      Aflux(0,1) = -m.rhocp2;
+      Aflux(1,0) = -m.drho; 
+      Aflux(1,1) = 0;
+      return Aflux;
+    }
+
     auto Source(ftype t, ftype x){
       Seismic w {Eigenvector(0)};
       ftype s = Ricker(t,5,1);
