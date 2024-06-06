@@ -16,6 +16,7 @@ ax.set_facecolor((0.5, 0.5, 0.5))
 
 Npoints = 400
 for ifile, filename in enumerate(sorted(droplist)):
+    print(filename)
     with open(filename) as f:
         s = f.readline()[1:]
         data = json.loads(s)
@@ -39,19 +40,6 @@ for ifile, filename in enumerate(sorted(droplist)):
                 label = '_'*(irow!=0)+f"{filename.split('_')[1]}")
     ax.set_title(f"{filename}")
     x = np.linspace( 0, data['N']*data['dx'],200 )
-    phi = x - 0.5*data['T']
-    step  = np.heaviside(phi-data['N']/2,.5) 
-    step += np.heaviside(-phi,.5) 
-    step = 2*step -1
-      #model.U0 + model.Au * sin(phase), 
-      #model.V0 + model.Av * cos(phase)
-    #ax.plot(x,step,
-    #ax.plot(x,np.sin(2*np.pi*(x-1*data['T'])/data["N"]/data["dx"]),
-    #ax.plot(x,phi,
-    #ax.plot(x, 4 + 0.1 * np.sin((x-1*data['T'])* 2*np.pi/data["N"]/data["dx"]),
-            #lw=10, alpha=.2,
-            #label=f"theor_{filename.split('_')[1]}",
-            #color = pallete((ifile+0.5)/len(droplist)))
 
 ax.grid()
 ax.legend()

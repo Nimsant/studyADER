@@ -39,15 +39,15 @@ struct DumbserMethod {
 
   ftype Lx {1.*N};
   ftype dx {1.};
-  ftype dt {.01}; ///???????????????
+  ftype dt {.01};
+  ftype Tmax {1};
   static constexpr int NBx {Mx+1};
   static constexpr int NBt {Mt+1};
   static constexpr int NQ {T::NQ};
 
   bool is_source_cell(int ix){ 
-    return false ; 
+    return true; 
     if (ix==N/2)  return true; 
-    return false ; 
   };
 
   arma::mat K1inv;
@@ -110,6 +110,7 @@ struct DumbserMethod {
     Lx = _Lx; 
     dx = Lx/N;
     dt = courant*dx;
+    Tmax = T::Tmax;
     //fmt::print("#Lx = {}; Nx = {}; dx = {}, dt = {}\n", Lx, N, dx, dt);
   }
 
@@ -335,6 +336,7 @@ struct DumbserMethod {
     fmt::print(" {:16.9}",  Linf);
     fmt::print(" \n");
   }
+
   void print_all (int istep) {
     std::string funcfilename = fmt::format("drop_{}.dat",istep);
     std::FILE* file = std::fopen( funcfilename.c_str(), "w");
@@ -361,31 +363,38 @@ struct DumbserMethod {
 };
 
 
-template<int MX, int MT>
-void several_full_calc(ftype courant){
-  one_full_calc<MX,MT,4>(courant);
-  one_full_calc<MX,MT,8>(courant);
-  one_full_calc<MX,MT,16>(courant);
-  one_full_calc<MX,MT,32>(courant);
-}
-
 
 template<int MX, int MT, int N>
 void one_full_calc(ftype courant){
-    DumbserMethod<MX, MT, seismic::Seismic, N> mesh_calc;
+    DumbserMethod<MX, MT, eqs4testing::Eqs4testing, N> mesh_calc;
     mesh_calc.set_Lx_Courant(1,courant);
+    eqs4testing::model.set(mesh_calc.Lx);// >>>>>>>>>>>>>>> ? <<<<<<<<<<<<<<<<
     mesh_calc.init();
     int istep = 0;
-    int Nperiod = floor(mesh_calc.Lx/1/mesh_calc.dt + .5);
+    //int Nperiod = floor(mesh_calc.Lx/1/mesh_calc.dt + .5);
+    int Nperiod = floor(mesh_calc.Tmax / mesh_calc.dt + .5);
+    mesh_calc.print_all(istep);
     for (; istep < Nperiod; istep++) {
+      //fmt::print("istep = {}\n",istep);
       mesh_calc.update(istep);
     }
     mesh_calc.print_error(istep);
 }
 
+template<int MX, int MT>
+void several_full_calc(ftype courant){
+  //one_full_calc<MX,MT,4>(courant);
+  one_full_calc<MX,MT,8>(courant);
+  one_full_calc<MX,MT,10>(courant);
+  one_full_calc<MX,MT,16>(courant);
+  one_full_calc<MX,MT,32>(courant);
+}
+
 int main() {
   fmt::print(" {:>8} {:>8} {:>8} {:>6} {:>4} {:>4} {:>4} {:>16} {:>16}\n","dx", "dt", "T", "N", "NQ", "NBx", "NBt", "L2", "Linf");
-    for (const auto courant_i : {1., .5, .1, .05, .01, 0.005, .001}) {
+    //for (const auto courant_i : {1., .5, .1, .05, .01, 0.005, .001}) {
+    for (const auto courant_i : {0.005, .001}) {
+  //{ ftype courant_i = .001;
       several_full_calc<0,0>(courant_i);
 
       several_full_calc<1,1>(courant_i);
@@ -400,29 +409,27 @@ int main() {
       several_full_calc<5,5>(courant_i);
       several_full_calc<6,6>(courant_i);
     }
-    /*
+  /*
   {
 
-      DumbserMethod<4, 4, seismic::Seismic, 10> mesh_calc;
-      mesh_calc.set_Lx_Courant(1,courant_i);
+      DumbserMethod<6, 6, eqs4testing::Eqs4testing, 10> mesh_calc;
+      mesh_calc.set_Lx_Courant(1,.001);
 
-      //eqs4testing::model.set(mesh_calc.Lx);// >>>>>>>>>>>>>>> ? <<<<<<<<<<<<<<<<
+      eqs4testing::model.set(mesh_calc.Lx);// >>>>>>>>>>>>>>> ? <<<<<<<<<<<<<<<<
 
       mesh_calc.init();
       int istep = 0;
-      //mesh_calc.print_all(istep);
+      mesh_calc.print_all(istep);
       
-      int Nperiod = floor(mesh_calc.Lx/1/mesh_calc.dt + .5);
-      for (; istep < Nperiod; istep++) {
+      for (; istep < .5/mesh_calc.dt; istep++) {
         mesh_calc.update(istep);
       }
       //mesh_calc.ADER_update(istep);
       //istep++;
-      //mesh_calc.print_all(istep);
+      mesh_calc.print_all(istep);
       //mesh_calc.init(istep*mesh_calc.dt);
       //mesh_calc.print_all(-istep);
       mesh_calc.print_error(istep);
-    }
   }
   */
 

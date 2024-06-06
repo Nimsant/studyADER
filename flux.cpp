@@ -60,7 +60,7 @@ auto SolomonOsherFlux(T uL, T uR, ftype dx, ftype dt){
 
   arma::mat Aint_dQ (T::NQ, T::NQ);
 
-  const int Oorder = 0;
+  const int Oorder = 1;
   for (int ik=0; ik<Oorder+1; ik++){
     T wk {};
     ftype s = GAUSS_ROOTS[Oorder][ik];

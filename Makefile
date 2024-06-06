@@ -42,7 +42,7 @@ main: main.o
 
 run: main 
 	rm -f *.dat
-	./$<  > run.log
+	./$< > run.log
 .PHONY: run
 
 show: run
