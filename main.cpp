@@ -376,7 +376,11 @@ void one_full_calc(ftype courant){
     mesh_calc.print_all(istep);
     for (; istep < Nperiod; istep++) {
       //fmt::print("istep = {}\n",istep);
-      mesh_calc.update(istep);
+      try {
+        mesh_calc.update(istep);
+      } catch (const std::exception& exception) {
+        //fmt::print("# <{}, {}, {}> failed with dt/dx = {};\n", MX, MT, N, courant);
+      }
     }
     mesh_calc.print_error(istep);
 }
@@ -384,31 +388,47 @@ void one_full_calc(ftype courant){
 template<int MX, int MT>
 void several_full_calc(ftype courant){
   //one_full_calc<MX,MT,4>(courant);
+  one_full_calc<MX,MT,4>(courant);
   one_full_calc<MX,MT,8>(courant);
   one_full_calc<MX,MT,10>(courant);
   one_full_calc<MX,MT,16>(courant);
   one_full_calc<MX,MT,32>(courant);
+  one_full_calc<MX,MT,64>(courant);
 }
 
 int main() {
   fmt::print(" {:>8} {:>8} {:>8} {:>6} {:>4} {:>4} {:>4} {:>16} {:>16}\n","dx", "dt", "T", "N", "NQ", "NBx", "NBt", "L2", "Linf");
-    //for (const auto courant_i : {1., .5, .1, .05, .01, 0.005, .001}) {
-    for (const auto courant_i : {0.005, .001}) {
-  //{ ftype courant_i = .001;
+  /*
+    for (const auto courant_i : { 0.5, 0.1, 0.05, 0.01, 0.005, .001, 0.0005}) {
       several_full_calc<0,0>(courant_i);
 
-      several_full_calc<1,1>(courant_i);
       several_full_calc<1,0>(courant_i);
+      several_full_calc<1,1>(courant_i);
 
       several_full_calc<2,0>(courant_i);
       several_full_calc<2,1>(courant_i);
       several_full_calc<2,2>(courant_i);
 
+      several_full_calc<3,0>(courant_i);
+      several_full_calc<3,1>(courant_i);
+      several_full_calc<3,2>(courant_i);
       several_full_calc<3,3>(courant_i);
+
+      several_full_calc<4,0>(courant_i);
+      several_full_calc<4,1>(courant_i);
+      several_full_calc<4,2>(courant_i);
+      several_full_calc<4,3>(courant_i);
       several_full_calc<4,4>(courant_i);
+
+      several_full_calc<5,1>(courant_i);
       several_full_calc<5,5>(courant_i);
+
+      several_full_calc<6,1>(courant_i);
       several_full_calc<6,6>(courant_i);
+
+      several_full_calc<7,7>(courant_i);
     }
+    */
   /*
   {
 

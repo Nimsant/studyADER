@@ -7,13 +7,17 @@ xfilter = 'NBx'
 filtervalues = list(range(1,9))
 Nrow = 4
 
-df = pd.read_csv("run.log",
+#df = pd.read_csv("run.log",
+df = pd.read_csv("runEQ.logbp",
     comment="#",
     sep = '\s+',
     header=0,
     #skip_blank_lines=True,
     )
-df['courant'] = df['dt']/df['dx']
+
+for irow,row in df.iterrows():
+    print(row['dt']/row['dx'])
+df['courant'] = (df['dt'])/(df['dx'])
 print(df)
 
 def palitra(i):
@@ -27,7 +31,7 @@ for  iM, M in enumerate(filtervalues):
 
         Nxset = [int(i) for i in list(set(dfhere[xaxis]))]
         x = [i for i in Nxset]
-        ymin = dfhere[dfhere[xaxis] == min(x)].iloc[0]['Linf']
+        ymin = dfhere[dfhere[xaxis] == min(x)].iloc[-1]['Linf']
 
         ax = axs[iM//Nrow][iM%Nrow]
         ax.set_title(f"{xfilter} = {M}")
@@ -36,7 +40,7 @@ for  iM, M in enumerate(filtervalues):
         y = [i**(-(M))*ymin/(min(x)**(-M)) for i in x]
         ax.plot(x,y,lw=30,color=palitra(iM),alpha=0.1)
 
-        y = [i**(-(1))*ymin/(min(x)**(-1)) for i in x]
+        y = [i**(-(2))*ymin/(min(x)**(-1)) for i in x]
         ax.plot(x,y,lw=30,color='grey',alpha=0.1)
 
         courantset = [i for i in list(set(dfhere['courant']))]
@@ -44,11 +48,16 @@ for  iM, M in enumerate(filtervalues):
 
         for icourant, courant in enumerate(courantset):
           for iNBt, NBt in enumerate(NBtset):
-            dfhere[dfhere['courant']==courant][dfhere['NBt']==NBt].plot(x=xaxis,y=what2plot,
+            tmpdf = dfhere[dfhere['courant']==courant][dfhere['NBt']==NBt]
+
+            if (tmpdf[what2plot] < 1.).any( ):
+             if (NBt<M):
+              tmpdf.plot(x=xaxis,y=what2plot,
                     ax=ax,
-                    label=f'dx/dt = {courant}, NBt = {NBt}',
+                    label=f'dt/dx = {courant:.2}, NBt = {int(NBt)}',
                     #color=palitra(icourant),
-                    lw =1
+                    lw =1,
+                    #legend=False
                     )
-ax.set_ylim(1e-18, 1e1)
+        ax.set_ylim(1e-12, 1e1)
 plt.show()
