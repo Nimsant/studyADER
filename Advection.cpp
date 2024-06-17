@@ -28,6 +28,11 @@ struct Advection{
     return w;
   }
 
+  auto Source(ftype t, ftype x, ftype dlt = 1){
+    Advection w {};
+    return w;
+  }
+
   auto FluxMinus(){
     Advection w {};
     w[0] = 0 - 0.5*sqrt(model.a*model.b) * u[0] + 0.5*model.a * u[1];

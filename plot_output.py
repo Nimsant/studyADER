@@ -12,10 +12,13 @@ droplist = glob.glob("drop_*")
 
 pallete = plt.get_cmap('Spectral')
 fig, ax = plt.subplots()
-ax.set_facecolor((0.5, 0.5, 0.5))
 
+ax.set_facecolor((0.5, 0.5, 0.5))
 Npoints = 400
-for ifile, filename in enumerate(sorted(droplist)):
+
+def plotfile(ifile, filename):
+    ax= plt.gca()
+    ax.clear()
     print(filename)
     with open(filename) as f:
         s = f.readline()[1:]
@@ -38,12 +41,32 @@ for ifile, filename in enumerate(sorted(droplist)):
                 lw = 1 if '-' not in filename else 3,
                 color = pallete((ifile+0.5)/len(droplist)),
                 label = '_'*(irow!=0)+f"{filename.split('_')[1]}")
-    ax.set_title(f"{filename}")
+    ax.set_title(f"{float(filename.split('_')[1].split('.')[0])*float(data['dt'])}")
     x = np.linspace( 0, data['N']*data['dx'],200 )
 
-ax.grid()
-ax.legend()
-plt.show()
+    ax.grid()
+    ax.set_ylim(-.02,.02)
+    ax.legend()
+    fig.canvas.draw()
 
+inum = 0
+filename = list(sorted(droplist))[inum]
+plotfile(inum, filename)
+
+def nextfile(event):
+    global inum
+    print(event.key)
+    if event.key=='right':
+        inum = (inum+1)%len(droplist)
+    if event.key=='left':
+        inum = (inum-1+len(droplist))%len(droplist)
+    filename = list(sorted(droplist))[inum]
+    plotfile(inum, filename)
+
+
+
+cid = fig.canvas.mpl_connect('key_press_event', nextfile)
+
+plt.show()
 
 

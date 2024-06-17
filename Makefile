@@ -8,22 +8,15 @@ GCC :=g++
 MAKEFLAGS += --warn-undefined-variables
 MAKEFLAGS += --no-builtin-rules
 
-
-MX?=0
-MT?=0
-N?=8
-NT?=1
-
-
 MODELS = Burgers.cpp Advection.cpp seismic.cpp eqs4testing.cpp gas.cpp
 
 FLUX = flux.cpp
 
 OPTIONS = -O3 -std=c++2a -I fmt/include  -larmadillo
-DEFINES = -DDEFINED_NT=$(NT) \
-					-DDEFINED_N=$(N) \
-					-DDEFINED_MT=$(MT) \
-					-DDEFINED_MX=$(MX) 
+DEFINES = 
+					
+					
+					
 
 ALL: main
 

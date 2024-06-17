@@ -7,6 +7,7 @@ namespace seismic {
             drho {1./_rho},
             rhocp2 {_rho*_cp*_cp} {};
   };
+
   Material get_material(int im) {
     if (im==0) { 
       return Material(1,1);
@@ -15,13 +16,19 @@ namespace seismic {
     }
   }
 
-  ftype Ricker(ftype t, ftype delay, ftype a) {
+  ftype Ricker(ftype t, ftype a) {
+    ftype delay = 5*a;
     ftype delayed_t = t-delay; 
-    return delayed_t * exp( -delayed_t*delayed_t/a/a); 
+    
+    ftype R =  delayed_t * exp( -delayed_t*delayed_t/a/a)*sqrt(2)*exp(.5)/a; 
+    //ftype R =  exp( -delayed_t*delayed_t/a/a) ; 
+    fmt::print("{} {}\n", t, R);
+    return R;
   }
 
   struct Seismic{
     static const int NQ{ 2 };
+    static constexpr ftype Tmax{ .5 };
 
     using SolutionVector = std::array<ftype,NQ> ;
     SolutionVector u {};
@@ -32,14 +39,14 @@ namespace seismic {
     }
 
     void fromInit(ftype x, ftype Lx, ftype t =0){
-      //u =  {sin(2*M_PI*x/DEFINED_N), sin(2*M_PI*x/DEFINED_N)/sqrt(model.a)};
+
       Material m = get_material(material_index);
       ftype k = 2*M_PI/Lx;
       ftype omega = k*m.cp;
       ftype wave = sin(k*x - omega*t);
 
-      u =  {wave, - wave/m.rho/m.cp};
-      //u =  {1, 1};
+      //u =  {wave, - wave/m.rho/m.cp};
+      u =  {0, 0};
     }
 
     auto Flux(){
@@ -74,13 +81,11 @@ namespace seismic {
       return Aflux;
     }
 
-    auto Source(ftype t, ftype x){
+    auto Source(ftype t, ftype x, ftype dlt = 1){
       Seismic w {Eigenvector(0)};
-      ftype s = Ricker(t,5,1);
-      //fmt::print("{:16} {:16}\n",t,s);
+      ftype s = dlt*Ricker(t,0.02);
       w[0] *= s;
       w[1] *= s;
-      w = {0,0};
       return w;
     }
 

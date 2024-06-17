@@ -2,7 +2,8 @@
 \usepackage{geometry}
 \geometry{landscape, margin=5mm}
 \usepackage{amsmath}
-\usepackage{xcolor}
+\usepackage{listings}
+\usepackage[usenames.dvipsnames]{xcolor}
 \definecolor{k}{HTML}{F94144}
 \definecolor{o}{HTML}{E8960E}
 \definecolor{zh}{HTML}{F9C74F}
@@ -10,11 +11,13 @@
 \definecolor{g}{HTML}{4D908E}
 \definecolor{s}{HTML}{277DA1}
 \definecolor{f}{HTML}{AA3DAA}
-\definecolor{gray}{HTML}{F0F0F6}
+\definecolor{gray}{HTML}{888888}
+%\definecolor{gray}{HTML}{F0F0F6}
 %\definecolor{gray}{HTML}{E4E8EE}
 
 \newcommand{\D}[2]{\frac{\partial #1}{\partial #2}}
 
+\lstset{language=C, basicstyle=\ttfamily, basewidth=0.46em,commentstyle=\color{gray},stringstyle=\color{Red},keywordstyle=\color{Blue},breaklines=true,morekeywords={cvar,calc}, showstringspaces=false} 
 \begin{document}
 %\pagecolor{gray}
 
@@ -26,7 +29,7 @@ It has $M$ roots: $0<\xi_i<1$, $i=0..M-1$.
 
 Gauss Legendre quadrature can be used:
 
-\begin{equation}
+\begin{equation} \label{eq:gaussq}
   \int_0^1 d\xi f(\xi) = \sum_{i=0}^{M-1} w_i f(\xi_i) 
 \end{equation}
 
@@ -64,30 +67,44 @@ To project a function $f(\xi)$ onto the basis
 \end{equation}
 the coefficients are found as
 \begin{equation}
+  \label{eq:takerootvalue}
   f_l = f(\xi_l).
 \end{equation}
 
 \clearpage
 \section{DG} \label{sec:DG}
-
+Let us take a system of equations  for vector of variables $\color{o}{\mathbf{u}}$, its components are $u_p$, $p=1..N_Q$. 
 \begin{equation} \label{init}
  \D {\color{o} u_p} {t} + 
  \D {\color{o} F_p (\pmb u)}{x} = 
   {\color{o} S_p(\pmb u, x, t)} \quad
 \end{equation}
 
+Let us take an element of spacetime $t^{(k)}<t<t^{(k)}+\Delta t$, $x^{(m)}<x<x^{(m)}+\Delta x$ and introduce local dimensionless variables in it
 \begin{align}
-  \tau^{(k)}(t) = \frac{t-t^{(k)}}{\Delta t}; \\
-  \xi^{(m)}(x) = \frac{x-x^{(m)}}{\Delta x}. \\
+  \tau^{(k)}(t) = \frac{t-t^{(k)}}{\Delta t}; \quad t(\tau^{(k)}) = t^{(k)}+\tau \Delta t \\
+  \xi^{(m)}(x) = \frac{x-x^{(m)}}{\Delta x}; \quad x(\xi^{(m)}) = x^{(m)}+\xi {\Delta x}. \\
   \xi^{(m)} \equiv \xi; \quad  \tau^{(k)} \equiv \tau.
 \end{align}
+The last expressions show how we omit the indexes of the current element. The indexes are written only for other elements, such as $(m+1)$ for its neighbor. 
 
+We store the solution in each element as the decomposition on the basis of Lagrange polynomials
+$
+  u_p \approx  {\color{f} \mathsf{w}_{pl_\xi} }
+   {\color{o} \psi_{l_\xi} (\xi(x))}
+  $, $l_\xi = 1... N_{Bx}$, $N_{Bx} = M_x +1$ where $M_x$ is the order of the spatial polynomial basis. 
+The coefficients ${\color{f} \mathsf{w}_{pl_{\xi}}}$ are initialized with (\ref{eq:takerootvalue}) and stored on the mesh.
+\begin{equation} 
+  {\color{f} \mathsf{w}_{pl_{\xi}}} =  {\color{o} u_p(x=x(\xi_{l_{\xi}}), t=0)}.
+\end{equation}
 
+We introduce dimensionless fluxes and sources as:
 \begin{equation} 
   \pmb F^* = \frac{\Delta t}{\Delta x} \pmb F; \quad
   \pmb S^* =       \Delta t            \pmb S.
 \end{equation}
 
+The system with   $\pmb F^*$ and $\pmb S^*$ is as follows. We multiply it buy a basis function (Lagrange polynomial) and integrate over the element. 
 \begin{equation} \label{DG}
 \left.
 \left.
@@ -103,9 +120,17 @@ the coefficients are found as
   \int_0^1 d\tau}
 \end{equation}
 
-lk\begin{equation}
+Below we omit the asterisk. Just remember that the sources and fluxes need to be made dimensionless. 
+
+
+The time derivative is integrated into the difference of $\color{o} {u_p}$ at $\tau=0$ and $\color{o} {u_p}$ at $1$.
+
+\begin{equation}
   \int_0^1 \D {u_p}{\tau} d\tau = \left. u_p \right|_{\tau=1} -  \left. u_p \right|_{\tau=0}.
 \end{equation}
+
+The solution $\color{o} {u_p}$ at $\tau = 0$ is known.  
+We seek to build an expression for  $\color{o} {u_p}$ at $\tau = 1$.
 
 \begin{align} 
   \left. u_p \right|_{\tau=0} \approx 
@@ -116,6 +141,9 @@ lk\begin{equation}
   {\color{o} \psi_{l_\xi} (\xi(x)) }
 \end{align}
 
+Below is the usual expression for finite element methods, which is obtained by integrating the flux term by parts. 
+We introduce  ${\color{s} \mathsf{F}_\text{right}}$ and ${\color{s} \mathsf{F}_\text{left}}$ that express the flux over the element boundary. 
+Instead of evaluating these as  $F_p (\pmb u)$, the expression for a solution of the Riemann problem is taken.
 \begin{equation}
   {\color{k} \mathsf{u}^+_{pl_\xi} }
   \langle {\color{o} \psi_{l_\xi} (\xi(x)) } 
@@ -146,6 +174,8 @@ lk\begin{equation}
   {\color{o} S_p}.
 \end{equation}
 
+We get the explicit expression for the sought value. 
+Now we need to decide on the expression for fluxes and evaluate the integrals on the right side.
 \begin{equation}
   {\color{k} \mathsf{u}^+_{pk_\xi} }
   w_{k_\xi}  = 
@@ -175,6 +205,8 @@ lk\begin{equation}
 \end{equation}
 \section{ADER} \label{sec:ADER}
 
+The integrals in time can be computed after we use a predictor for $u$ in the $t^{(k)}<t<t^{(k)}+\Delta t$ range. 
+Let us integrate system again, similarly to (\ref{DG}), but with ${\color{z} \cdot  \theta_k (\xi,\tau) }$ such that :
 \begin{equation} \label{localADERinit}
 \left.
 \left.
@@ -189,6 +221,11 @@ lk\begin{equation}
   \int_0^1 d\tau }
 \end{equation}
 
+Here, $l_\tau = 1... N_{Bt}$, $N_{Bt} = M_t +1$ where $M_x$ is the order of the temporal polynomial basis. 
+
+The expansion coefficients for sources and fluxes are evaluated as functions of $\pmb u$. 
+This is correct when the conditions for the Gauss quadrature (\ref{eq:gaussq}) are satisfied. 
+In other cases, we assume the expression is sufficiently precise. 
 \begin{equation}
  {\color{o} u_p} \approx 
  {\color{k} q_p (\xi,\tau)} = 
@@ -215,6 +252,10 @@ lk\begin{equation}
 {\color{o} \theta_{l}(\xi,\tau) }; \quad {\color{k} \mathcal{S}_{pl}  \approx  S_p(\pmb q) }
 \end{equation}
 
+We need to find ${\color{k} q_{pl_\xi l_\tau} }$. 
+The initial condition at $\tau=0$ has to be taken into account. 
+Let us integrate the term with the time derivative by parts:
+
 \begin{equation}
  {\color{z} \int_0^1 \int_0^1 }
  \D {\color{o} u_p} {\tau} 
@@ -230,13 +271,14 @@ lk\begin{equation}
  }
 \end{equation}
 
+This way, we can expose the known values:
 
 \begin{equation}
  {\color{o}
   u_p(\tau=0) } = 
- {\color{f} w_{pl_\xi}}
+  {\color{f} \mathsf{w}_{pl_\xi}}
  {\color{o} \psi_{l_\xi}(\xi) } ; \quad
- {\color{k} q_{pl}}{\color{o}\psi_{l_\tau}(0)} = {\color{f} w_{pl_\xi}}
+  {\color{k} q_{pl}}{\color{o}\psi_{l_\tau}(0)} = {\color{f} \mathsf{w}_{pl_\xi}}
 \end{equation}
 
 \begin{equation}
@@ -258,7 +300,7 @@ lk\begin{equation}
  {\color{z} \int_0^1 }
  {\color{o} \psi_{l_\xi}(\xi) }
  {\color{z} \psi_{k_\xi}(\xi) d\xi} - 
- {\color{f} w_{pl_\xi}}
+  {\color{f} \mathsf{w}_{pl_\xi}}
  {\color{z} \psi_{k_\tau}(0) } 
  {\color{z} \int_0^1 }
  {\color{o} \psi_{l_\xi}(\xi) }
@@ -275,14 +317,16 @@ lk\begin{equation}
 \begin{equation}
  { \int_0^1 }
  { \psi_{l_\xi}(\xi) }
- { \psi_{k_\xi}(\xi) d\xi  = \delta_{l_\xi k_\xi} \mathsf{w}_{k_\xi}}.
+ { \psi_{k_\xi}(\xi) d\xi  = \delta_{l_\xi k_\xi} w_{k_\xi}}.
 \end{equation}
 
 
-Finally, from (\ref{localADERinit}), we get the system of $k_\xi \cdot k_\tau$ equations:
+Finally, from (\ref{localADERinit}), we get the system of $N_{Btx} = N_{Bx} \cdot N_{Bt}$  equations for ${\color{k} q_{pk_\xi k_\tau} }$. 
+Note that the summation index is $l :\{l_\xi,l_\tau\}$, and $k$ (i.e.,  $k = N_{Bt}k_\xi+k_\tau$) is the number of the equation in the system.  
+
 \begin{align} \begin{split}
   {\color{k} q_{pl}}
-  {\color{z} \delta_{l_\xi k_\xi} \mathsf{w}_{k_\xi}} 
+  {\color{z} \delta_{l_\xi k_\xi} w_{k_\xi}} 
   \left(
      {\color{o} \psi_{l_\tau}(1) }
      {\color{z} \psi_{k_\tau}(1) } - 
@@ -290,9 +334,9 @@ Finally, from (\ref{localADERinit}), we get the system of $k_\xi \cdot k_\tau$ e
      {\color{o} \psi_{l_\tau}(\tau) }
      {\color{z} \D{\psi_{k_\tau}(\tau)}{\tau} d\tau}
   \right) = 
-  {\color{f} w_{pl_\xi}}
+  {\color{f} \mathsf{w}_{pl_\xi}}
   {\color{z} \psi_{k_\tau}(0) }
-  {\color{z} \delta_{l_\xi k_\xi} \mathsf{w}_{k_\xi}} - 
+  {\color{z} \delta_{l_\xi k_\xi} w_{k_\xi}} - 
   {\color{o} \mathcal{F}_{pl_\xi l_\tau}  ( {\color{k} \pmb q_{l}})}
   {\color{z} \int_0^1 } 
   {\color{o} \psi_{l_\tau}(\tau) }
@@ -314,48 +358,55 @@ Finally, from (\ref{localADERinit}), we get the system of $k_\xi \cdot k_\tau$ e
      { \int_0^1 }
      { \psi_{l_\tau}(\tau) }
      { \D{\psi_{k_\tau}(\tau)}{\tau} d\tau } = 
-     \left. \mathsf{w}_{l_\tau} \D{\psi_{k_\tau}}{\tau} \right|_{\tau=\tau_{l_\tau}}
+     \left. {w}_{l_\tau} \D{\psi_{k_\tau}}{\tau} \right|_{\tau=\tau_{l_\tau}}
 \end{split}\end{align}
 
 \begin{align} \begin{split}
   {\color{k} q_{pl}}
-  { \delta_{l_\xi k_\xi} \mathsf{w}_{k_\xi}} 
+  { \delta_{l_\xi k_\xi} {w}_{k_\xi}} 
   \left(
      {\color{o} \psi_{l_\tau}(1) }
      {\color{z} \psi_{k_\tau}(1) } - 
      {\color{z}
-     \left. \mathsf{w}_{l_\tau} \D{\psi_{k_\tau}}{\tau} \right|_{\tau=\tau_{l_\tau}}
+     \left. {w}_{l_\tau} \D{\psi_{k_\tau}}{\tau} \right|_{\tau=\tau_{l_\tau}}
      }
   \right) = 
-  {\color{f} w_{pk_\xi}}
+  {\color{f} \mathsf{w}_{pk_\xi}}
   {\color{z} \psi_{k_\tau}(0) }
-  {\color{z} \mathsf{w}_{k_\xi}} - 
+  {\color{z} {w}_{k_\xi}} - 
   {\color{o} \mathcal{F}_{pl}  ( {\color{k} \pmb q_{l}})}
-  \delta_{l_\tau k_\tau} \mathsf{w}_{k_\tau} 
-     \left. \mathsf{w}_{k_\xi} \D{\psi_{l_\xi}}{\xi} \right|_{\xi=\xi_{k_\xi}} + 
+  \delta_{l_\tau k_\tau} {w}_{k_\tau} 
+     \left. {w}_{k_\xi} \D{\psi_{l_\xi}}{\xi} \right|_{\xi=\xi_{k_\xi}} + 
   {\color{o} \mathcal{S}_{pl}  ( {\color{k} \pmb q_{l}})}
-  \delta_{l_\tau k_\tau} \mathsf{w}_{k_\tau} 
-  \delta_{l_\xi k_\xi} \mathsf{w}_{k_\xi} 
+  \delta_{l_\tau k_\tau} {w}_{k_\tau} 
+  \delta_{l_\xi k_\xi} {w}_{k_\xi} 
 \end{split}\end{align}
 
+We introduce new notations to shorten the expression. The $ K_{1,kl}$, $K_{\xi, kl}$ are $N_{Btx}\times N_{Ntx}$ matrices that can be found as soon as the polynomial basis is fixed. 
+${\color{f} W_k }$, 
+${\color{o} \mathcal{F}_{pl}  ( {\color{k} \pmb q_{l}})}$, 
+and  ${\color{o} \mathcal{S}_{pk}  ( {\color{k} \pmb q_{k}})}
+{w}_{k_\xi} {w}_{k_\tau} $
+are vectors of $N_{Btx}$ components.  
 \begin{equation}
  K_{1,kl}
  {\color{k} q_l } =
  {\color{f} W_k } - K_{\xi, kl} 
  {\color{o} \mathcal{F}_{pl}  ( {\color{k} \pmb q_{l}})} +
  {\color{o} \mathcal{S}_{pk}  ( {\color{k} \pmb q_{k}})}
-\mathsf{w}_{k_\xi} 
-\mathsf{w}_{k_\tau} 
+{w}_{k_\xi} {w}_{k_\tau} 
 \end{equation}
 
-\begin{equation}
+
+The system is solved by iterations. The index  $i$ is the number of iteration:
+\begin{equation}\label{eq:ADERiter}
  {\color{k} q_m ^{(i+1)} } =
  (K_{1}^{-1})_{mk} \left(
  {\color{f} W_k } - K_{\xi, kl} 
  {\color{o} \mathcal{F}_{pl}  ( {\color{k} \pmb q_{l}^{(i)} })} +
  {\color{o} \mathcal{S}_{pk}  ( {\color{k} \pmb q_{k}^{(i)} })}
-\mathsf{w}_{k_\xi} 
-\mathsf{w}_{k_\tau} 
+{w}_{k_\xi} 
+{w}_{k_\tau} 
  \right)
 \end{equation}
 
@@ -369,9 +420,273 @@ Finally, from (\ref{localADERinit}), we get the system of $k_\xi \cdot k_\tau$ e
  {\color{o} \mathcal{F}_{pl}  ( {\color{k} \pmb q_{l}^{(i)} })} +
  (K_{1}^{-1})_{mk} 
  {\color{o} \mathcal{S}_{pk}  ( {\color{k} \pmb q_{k}^{(i)} })}
-\mathsf{w}_{k_\xi} 
-\mathsf{w}_{k_\tau} 
+{w}_{k_\xi} 
+{w}_{k_\tau} 
 }
 \end{equation}
+
+\section{Fluxes} \label{sec:Fluxes}
+Let us introduce the Jacobian matrix:
+\begin{equation}\label{eq:Adef}
+  \pmb A = \D {\pmb F}{\pmb u}.
+\end{equation}
+
+Its eigendecomposition is 
+
+\begin{equation}
+  \pmb A = \pmb K(\pmb u) \pmb \Lambda (\pmb u) \pmb K^{-1}(\pmb u)  
+\end{equation}
+where $\pmb K$  is the matrix formed by the right eigenvectors, and $\Lambda$ is the diagonal matrix whose diagonal entries are the eigenvalues $\lambda_p$.
+If the system is linear, $\pmb A $ does not depend on $\pmb u$. 
+ 
+Let us introduce $\pmb w =  \pmb K^{-1} \pmb u $. 
+The system of equations (\ref{init}) can be multiplied by $\pmb K^{-1}$ on the left and written as 
+\begin{equation}
+  \D  {\pmb w} t + 
+\pmb \Lambda \D {\pmb w}{x} = 
+  \pmb K^{-1} \pmb S
+\end{equation}
+If matrices and sources do not depend on $\pmb u$, these are $Q$ independent equations for $\pmb w$. 
+For the $p$-th equation, its $\lambda_p$ determine the direction of the flow. 
+Let us decompose $\pmb A$ and $\pmb \Lambda$ according to the flow direction:
+
+\begin{equation}
+  \pmb \Lambda = \pmb \Lambda^+ + \pmb \Lambda^- 
+\end{equation}
+where $\Lambda^+$ has only the positive eigenvalues $\lambda^+_p = \max(\lambda_p,0)$ on the diagonal,  and $\Lambda^+$ has only the negative eigenvalues $\lambda^-_p = \min(\lambda_p,0)$.
+
+\begin{equation}
+  \pmb A = \pmb A^+ + \pmb A^- = \pmb K \pmb \Lambda^+ \pmb K^{-1} +  \pmb K \pmb \Lambda^- \pmb K^{-1}
+\end{equation}
+
+We define $\pmb F^+$ and $\pmb F^-$ as 
+
+\begin{equation}
+  \pmb A^+ = \D {\pmb F^+}{\pmb u}, \quad  
+  \pmb A^- = \D {\pmb F^-}{\pmb u}.
+\end{equation}
+
+If the system is linear, 
+\begin{equation}
+  \pmb F^+ = \pmb A^+ \pmb u, \quad
+  \pmb F^- = \pmb A^- \pmb u.
+\end{equation}
+
+The flux to use on the boundary between element $(m)$ and $(m+1)$ is taken as 
+\begin{equation}
+  {\color{s} \mathsf{F}_\text{right}} = \pmb A^+ \pmb u^{(m)} + \pmb A^- \pmb u^{(m+1)}
+\end{equation}
+and on the boundary between element $(m-1)$ and $(m)$ is
+\begin{equation}
+  {\color{s} \mathsf{F}_\text{left}} = \pmb A^+ \pmb u^{(m-1)} + \pmb A^- \pmb u^{(m)}
+\end{equation}
+
+If the system is not linear,  from (\ref{eq:Adef})
+
+\begin{equation}
+  \int_{\pmb u^{(m)}}^{\pmb u^{(m+1)}} \pmb A d\pmb u= \pmb F (\pmb u^{(m+1)}) - \pmb F (\pmb u^{(m)})
+\end{equation}
+And the same expression for $\pmb F^+$ and  $\pmb F^-$.
+
+The Solomon-Osher type flux is 
+\begin{equation}
+  {\color{s} \mathsf{F}_\text{right}} = \pmb F^+( \pmb u^{(m)} )+ \pmb F^- (\pmb u^{(m+1)}).
+\end{equation}
+or, if $\pmb F^+$ or  $\pmb F^-$ are expanded, it can be expressed in different forms:
+
+\begin{align}\label{eq:solomonflux}
+{\color{s} \mathsf{F}_\text{right}} = 
+  \pmb F( \pmb u^{(m)} ) +  \int_{\pmb u^{(m)}}^{\pmb u^{(m+1)}} \pmb A^- (\pmb u) d\pmb u;\\
+{\color{s} \mathsf{F}_\text{right}} = 
+  \pmb F( \pmb u^{(m+1)} ) +  \int_{\pmb u^{(m)}}^{\pmb u^{(m+1)}} \pmb A^+(\pmb u)  d\pmb u;\\
+{\color{s} \mathsf{F}_\text{right}} = 
+  \frac 12  \left( 
+    \pmb F( \pmb u^{(m)} ) + 
+    \pmb F( \pmb u^{(m+1)} )
+  \right) -  
+  \int_{\pmb u^{(m)}}^{\pmb u^{(m+1)}} (\pmb A^+(\pmb u)  - \pmb A^-(\pmb u) ) d\pmb u.
+\end{align}
+
+We can directly compute $ \pmb F( \pmb u^{(m)}$,  $ \pmb F( \pmb u^{(m+1)}$. For the second term, we need to compute the integral. 
+
+In the $Q$-dimensional phase space, there are two states $\pmb u^{(m)} $ and $\pmb u^{(m+1)} $. 
+They should be connected by a thermodynamically correct path, and the integral has to follow the path. 
+As a simple approximation, we take the path 
+\begin{equation}
+  \pmb \Psi(s) =  \pmb u^{(m)}+s( \pmb u^{(m+1)} -  \pmb u^{(m)}), \quad 0\le s\le 1.
+\end{equation}
+\begin{equation}
+  \pmb \Psi(0) = \pmb u^{(m)}, \quad  \pmb \Psi(1) = \pmb u^{(m+1)} .
+\end{equation}
+
+The integral variable changes to 
+\begin{equation}
+  d\pmb u \to \D {\pmb \Psi} s ds = (  \pmb u^{(m+1)} -  \pmb u^{(m)} ) ds.
+\end{equation}
+
+The integral is taken with the Gauss-Legendre quadrature:
+\begin{equation}
+  \int_0^1  (\pmb A^+(\pmb \Psi (s))  - \pmb A^-(\pmb \Psi (s)) ds = 
+  \sum_j w_j \left( 
+     (\pmb A^+(\pmb \Psi (s_j))  - \pmb A^-(\pmb \Psi (s_j))
+  \right)
+\end{equation}
+
+where $w_j$ and $s_j$ are the Gaussian weights and quadrature points respectively. 
+
+\section{Full algorithm}\label{sec:algorithm}
+
+The data type for the solution vector  $\color o u_p$, $p=1..N_Q$ is 
+
+\begin{lstlisting}
+  using SolutionVector = std::array<ftype,NQ>
+\end{lstlisting}
+Where \lstinline{ftype} is single or double precision floating point value.  
+
+$\color{f} \mathsf w_{pl}$ is the DG decomposition of the solution vector $u_p$ in space. 
+The data type for $w_{pl}$ is 
+\begin{lstlisting}
+  using xDGdecomposition = std::array<T,NBx>; // U[ibx][iq] 
+\end{lstlisting}
+where \lstinline{T} is the class that includes $\color o u_p$ and other coefficients and methods required by the physical model. 
+
+
+First, $\color{f} \mathsf w_{pl}$ are known. 
+\begin{enumerate}
+  \item We obtain $q_{pl}$ with the ADER update. For this purpose, 
+     \begin{itemize}
+       \item The data type for $q_{pl}$ is 
+         \begin{lstlisting}
+    using xtDGdecomposition = std::array<T,NBt*NBx>; // q[ibt*NBx+ibx][iq] 
+         \end{lstlisting}
+      \item We use (\ref{eq:ADERiter}), and insert the dimension units $\Delta t$, $\Delta x$ :
+\begin{equation}
+ {\color{k} q_m ^{(i+1)} } =
+ (K_{1}^{-1})_{mk} \left(
+  {\color{f} W_k } - \frac {\Delta t} {\Delta x} K_{\xi, kl} 
+ {\color{o} \mathcal{F}_{pl}  ( {\color{k} \pmb q_{l}^{(i)} })} +
+  \Delta t
+ {\color{o} \mathcal{S}_{pk}  ( {\color{k} \pmb q_{k}^{(i)} })}
+{w}_{k_\xi} 
+{w}_{k_\tau} 
+ \right)
+\end{equation}
+      \item
+        The matrices $ K^{-1}_{1,mk}$ (\lstinline{K1inv}), and $K_{2,ml} = K^{-1}_{1,mk} K_{\xi, kl}$  (\lstinline{K2}) are found once in the class constructor. The Armadillo library is used for matrix inversion. 
+      \item the initial guess for the iterative procedure $q_{pl}^{(0)}$ is estimated as 
+        \begin{equation}
+          q_{pl_\xi l_\tau} = {\color{f} \mathsf w_{pl_\xi}} \quad \text{ for all $l_\tau$ }.
+        \end{equation}
+      \item The ${\color{f} W_k } = {\color{f} \mathsf w_{pk_\xi}}{\color{z}\psi_{k_\tau}(0)w_{k_\xi}}$ vector  is found once before the iterations. 
+      \item In each iteration $i$,
+        \begin{enumerate}
+          \item Compute $\pmb F(\pmb q_l^{(i)})$, $\pmb S(\pmb q_l^{(i)})$.
+          \item Evaluate $\pmb q_l^{(i+1)}$.
+        \end{enumerate}
+     \end{itemize} 
+  \item We compute and integrate over time the flux between the pair of elements.
+     \begin{itemize}
+       \item The predictor solution $\pmb q_{l_\xi l_\tau}$ which was found for the left and the right elements are evaluated at the element boundary to get \lstinline{qL} and  \lstinline{qR} correspondingly. 
+         \begin{align}
+           q_{L,l_\tau} = q^{(m)(i)  }_{l_\xi l_\tau} \psi_{l_\xi} (\xi = 1);\\
+           q_{R,l_\tau} = q^{(m+1)(i)}_{l_\xi l_\tau} \psi_{l_\xi} (\xi = 0);\\
+          \end{align}
+       \item
+         The integrals in time are found with the Gauss quadrature
+         \begin{equation}
+           \int_0^1 d\tau {\color{s} \mathsf{F}_\text{right}} = \sum_{l_\tau} w_{l_\tau}  \mathsf{F}_\text{right}( q_{L,l_\tau}, q_{R,l_\tau}). 
+         \end{equation}
+       \item
+         ${\color{s} \mathsf{F}_\text{right}( q_{L,l_\tau}, q_{R,l_\tau})}$ is found for each $l_\tau$ with the Solomon-Oscher expression (\ref{eq:solomonflux})
+         \begin{equation}
+{\color{s} \mathsf{F}_\text{right}} = 
+  \frac 12  \left( 
+    \pmb F( \pmb q_{L,l_\tau} ) + 
+    \pmb F( \pmb q_{R,l_\tau} )
+  \right) -  
+           \int_{\pmb q_{L,l_\tau}}^{\pmb q_{R,l_\tau}} (\pmb A^+(\pmb u)  - \pmb A^-(\pmb u) ) d\pmb u.
+         \end{equation}
+         To do this, 
+         \begin{enumerate}
+           \item $\pmb A^+(\pmb u)  - \pmb A^-(\pmb u)$ ( \lstinline{Amod} ) is found for several ( \lstinline{Oorder+1}) Gaussian quadrature points $s_j$.
+           \item The analytical expression for $\pmb A(u)$ is written in the class for the physical model. The Armadillo package is used to find the eigenvalues and eigenvectors of $\pmb A(\pmb \Psi (s_j))$, where $\Psi (s_j) =  \pmb q_{L,l_\tau} + s (   \pmb q_{R,l_\tau} -  \pmb q_{L,l_\tau} ), $ and to perform further algebra to find \lstinline{Amod}.
+           \item The integral is computed with the Gaussian quadrature with the order \lstinline{Oorder}. 
+             \begin{equation}
+               \int_{\pmb q_{L,l_\tau}}^{\pmb q_{R,l_\tau}} (\pmb A^+(\pmb u)  - \pmb A^-(\pmb u) ) d\pmb u = \sum_j w_j  (\pmb A^+(\pmb  \Psi (s_j))  - \pmb A^-(\pmb  \Psi (s_j)) ) (   \pmb q_{R,l_\tau} -  \pmb q_{L,l_\tau} )
+             \end{equation}
+         \end{enumerate}
+     \end{itemize} 
+   \item We find the new $u^+_{pk}$ value.  We use (\ref{eq:update}), and insert the dimension coefficients $\Delta t$, $\Delta x$.
+\begin{equation}
+  {\color{k} \mathsf{u}^+_{pk_\xi} }
+  = 
+  {\color{f} \mathsf{w}_{pk_\xi} } 
+  - 
+  \frac{\Delta t}{\Delta x w_{k_\xi}}
+  \left (
+  {\color{z} \int_0^1 d\tau \left( 
+  \left.
+  {\color{s} \mathsf{F}_\text{right}  }
+  \psi_{k_\xi} 
+  \right|_{\xi=1}
+  - 
+  \left.
+  {\color{s} \mathsf{F}_\text{left}  }
+  \psi_{k_\xi} 
+  \right|_{\xi=0}
+  -
+  \int_0^1 
+  {\color{o} F_p (\pmb u)}
+  \D{\psi_{k_\xi}}{\xi}
+  d\xi
+  \right) + } \Delta x
+ {\color{z}  
+  \int_0^1 d\xi
+  \psi_{k_\xi} (\xi) 
+  \int_0^1 d\tau}
+  {\color{o} S_p}.
+  \right)
+\end{equation}
+     \begin{itemize}
+       \item ${\color{s} \mathsf{F}_\text{left}( q_{L,l_\tau}, q_{R,l_\tau})}$ is the ${\color{s} \mathsf{F}_\text{right}( q_{L,l_\tau}, q_{R,l_\tau})}$ of the neighboring element to the left. 
+       \item The volume flux and the source terms are expanded as 
+         \begin{align}
+           {\color{o} F_{p} (\pmb u) = F_p(\pmb q_l) \psi_{l_\xi}(\xi) \psi_{l_\tau}(\tau) }\\
+           {\color{o} S_{p} (\pmb u,\xi,\tau) =  S_p (\pmb q_l, 
+                                            \xi_{l_\xi}, 
+                                            \tau_{l_\tau}) 
+                                      \psi_{l_\xi}(\xi) 
+                                      \psi_{l_\tau}(\tau)}
+         \end{align}
+         where $l_\xi$, $l_\tau$ are the Gaussian quadrature points. 
+       \item After integration in $\tau$, $\xi$ these become:
+         ${\color{o}F_p (\pmb q_l)}{\color{z} I_{l_\xi k_\xi}}  w_{l_\tau}$, and
+         ${\color{o}S_p (\pmb q_l,\xi_{l_\xi}, \tau_{l_\tau})}{\color{z} w_{k_\xi} w_{l_\tau}}$
+               correspondingly.  The matrix 
+               \begin{equation}
+                 {\color{z} I_{l_\xi k_\xi} = 
+                 \int_0^1 }
+                 {\color{o} \psi_{l_\xi}(\xi) }
+                 {\color{z}
+                 \D{\psi_{k_\xi}}{\xi} d\xi = w_{l_\xi}\left. \D {\psi_{k_\xi}}{\xi}\right|_{\xi=\xi_{k_\xi}}.
+                 }
+               \end{equation}
+               is denoted as \lstinline{I4volflux} and it is evaluated once in the class constructor method. 
+       \item We remind that there are $N_{Bx}$ vector components, where $1\le k_\xi \le N_{Bx}$, and the sum over $l_\tau$ and $l_\xi$ is performed.
+     \end{itemize} 
+\end{enumerate}
+
+
+\section{Code Sructure}\label{sec:algorithm}
+The code includes 
+\begin{itemize}
+  \item the \lstinline{main.cpp} file with  the \lstinline{DumbserMethod} class, where the ADER predictor and the mesh update functions are implemented as methods;
+  \item several physical models definitions: advection, seismic, etc.;
+  \item the \lstinline{fluxes.cpp} file with the functions for evaluation of fluxes;
+  \item the \lstinline{PMpolynoms.py} file which generates the coefficients that are obtained from the choice of the Lagrange polynomial basis;
+  \item the \lstinline{plot_error.py} and \lstinline{plot_output.py} for visualization of results. 
+  \item the \lstinline{Makefile}
+\end{itemize}
+
 
 \end{document}

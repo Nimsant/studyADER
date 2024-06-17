@@ -32,8 +32,6 @@ template <int M> ftype deriv_polynomial(int l, ftype x){
 #include "flux.cpp"
 #include "eqs4testing.cpp"
 
-
-
 template<int Mx, int Mt, typename T, int N>
 struct DumbserMethod {
 
@@ -46,8 +44,9 @@ struct DumbserMethod {
   static constexpr int NQ {T::NQ};
 
   bool is_source_cell(int ix){ 
-    return true; 
+    //return true; 
     if (ix==N/2)  return true; 
+    return false;
   };
 
   arma::mat K1inv;
@@ -74,7 +73,6 @@ struct DumbserMethod {
       ftype Kxi[NBt*NBx][NBt*NBx];
       for (int ikx=0; ikx<NBx; ikx++) {
         for (int ikt=0; ikt<NBt; ikt++) {
-          //int ik {ikt*NBx + ikx}; 
           int ik {ikx*NBt + ikt}; 
           for (int ilx=0; ilx<NBx; ilx++) {
             for (int ilt=0; ilt<NBt; ilt++) {
@@ -99,10 +97,6 @@ struct DumbserMethod {
         for (int ilx=0; ilx<NBx; ilx++) {
           I4volflux(ilx,ikx) = GAUSS_WEIGHTS[Mx][ilx] * deriv_polynomial<Mx>(ikx, GAUSS_ROOTS[Mx][ilx]); 
         }
-      }
-      double checksum = 0;
-      for (int ikx=0; ikx<NBx; ikx++) {
-        checksum += GAUSS_WEIGHTS[Mx][ikx];
       }
   };
 
@@ -173,7 +167,7 @@ struct DumbserMethod {
       for (int il=0; il<NBt*NBx; il++) {
         F[il] = q[il].Flux();
         if (is_source_cell(ix)) {
-          S[il] = q[il].Source( dt*(istep + GAUSS_ROOTS[Mt][il%NBt]), dx*(ix + GAUSS_ROOTS[Mx][il/NBt]) );
+          S[il] = q[il].Source( dt*(istep + GAUSS_ROOTS[Mt][il%NBt]), dx*(ix + GAUSS_ROOTS[Mx][il/NBt]) , ((il/NBt)==0)?1:0 );
           for (int iq=0; iq<NQ; iq++) {
             S[il][iq] *= dt * GAUSS_WEIGHTS[Mx][il/NBt] * GAUSS_WEIGHTS[Mt][il%NBt];
             //fmt::print("{} {}     ||S||    {:20.18}\n",il,iq,S[il][iq]);
@@ -270,7 +264,7 @@ struct DumbserMethod {
             }
             if (is_source_cell((ix+N-1)%N)){ 
               for (int ilt=0; ilt<NBt; ilt++) {
-                T S = left_cell_q[ikx*NBt + ilt].Source( dt*(istep + GAUSS_ROOTS[Mt][ilt]), dx*((ix+N-1)%N + GAUSS_ROOTS[Mx][ikx]) );
+                T S = left_cell_q[ikx*NBt + ilt].Source( dt*(istep + GAUSS_ROOTS[Mt][ilt]), dx*((ix+N-1)%N + GAUSS_ROOTS[Mx][ikx]) , (ikx==0)?1:0 );
                 for (int iq=0; iq<NQ; iq++){
                   addsourcep[iq] += S[iq] * GAUSS_WEIGHTS[Mt][ilt] * GAUSS_WEIGHTS[Mx][ikx];
                 }
@@ -338,7 +332,7 @@ struct DumbserMethod {
   }
 
   void print_all (int istep) {
-    std::string funcfilename = fmt::format("drop_{}.dat",istep);
+    std::string funcfilename = fmt::format("drop_{:09}.dat",istep);
     std::FILE* file = std::fopen( funcfilename.c_str(), "w");
     //fmt::print(file,"# {{ {:?}: {}, {:?}: {}, {:?}: {} }}\n", "dx", dx,"NQ",NQ, "NB", NB);
     fmt::print(file,"# {{");
@@ -371,11 +365,8 @@ void one_full_calc(ftype courant){
     eqs4testing::model.set(mesh_calc.Lx);// >>>>>>>>>>>>>>> ? <<<<<<<<<<<<<<<<
     mesh_calc.init();
     int istep = 0;
-    //int Nperiod = floor(mesh_calc.Lx/1/mesh_calc.dt + .5);
     int Nperiod = floor(mesh_calc.Tmax / mesh_calc.dt + .5);
-    mesh_calc.print_all(istep);
     for (; istep < Nperiod; istep++) {
-      //fmt::print("istep = {}\n",istep);
       try {
         mesh_calc.update(istep);
       } catch (const std::exception& exception) {
@@ -429,38 +420,30 @@ int main() {
       several_full_calc<7,7>(courant_i);
     }
     */
-  /*
   {
 
-      DumbserMethod<6, 6, eqs4testing::Eqs4testing, 10> mesh_calc;
-      mesh_calc.set_Lx_Courant(1,.001);
+      DumbserMethod<5, 5, seismic::Seismic, 160> mesh_calc;
+      mesh_calc.set_Lx_Courant(1,.02);
 
       eqs4testing::model.set(mesh_calc.Lx);// >>>>>>>>>>>>>>> ? <<<<<<<<<<<<<<<<
 
       mesh_calc.init();
       int istep = 0;
       mesh_calc.print_all(istep);
-      
-      for (; istep < .5/mesh_calc.dt; istep++) {
+      const int Tmax = 1/mesh_calc.dt;
+      int period = Tmax/10;
+      period = (period>0)?period:Tmax;
+      for (; istep < Tmax; istep++) {
+//fmt::print("{:8}/{:8}\n", istep, Tmax);
         mesh_calc.update(istep);
+        if ( (istep+1) % period == 0)mesh_calc.print_all(istep);
       }
       //mesh_calc.ADER_update(istep);
       //istep++;
-      mesh_calc.print_all(istep);
       //mesh_calc.init(istep*mesh_calc.dt);
       //mesh_calc.print_all(-istep);
       mesh_calc.print_error(istep);
   }
-  */
-
-  /*
-   gas::Gas u; 
-   u.fromInit(0,1,0);
-   auto K0 = u.Eigenvector(0);
-   auto K1 = u.Eigenvector(1);
-   auto f = SolomonOsherFlux(u,u,1,1);
-   fmt::print("{} {}\n", u.u, K0, K1);
-   */
 
    fmt::print("#Finished\n");
    return 0;
