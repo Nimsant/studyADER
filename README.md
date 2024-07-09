@@ -24,6 +24,7 @@ The code features are limited:
  - the code is 1D
  - the elements are rectangular, and the mesh is uniform
  - no limiter is used
+ - non-conservative fluxes are not implemented
  - PnPm WENO reconstruction is not applied
  - several phyisical models are included, but only Seismic and eqs4testing are working in the latest version (the others may miss a function parameter or a source method, which you can add yousefl)
 
