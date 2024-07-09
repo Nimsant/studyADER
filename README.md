@@ -35,6 +35,15 @@ You need
  * python3 
    * packages used: numpy, matplotlib, icecream
 
+Included physical models
+========================
+
+1. Advection (needs update)
+2. Seismic: 1D linear elasticity 
+3. gas (Euler system) (needs update)
+4. eqs4testing: the system (53) from  https://doi.org/10.1016/j.jcp.2007.12.005 which allows to test the source term. 
+Turn on the `is_source_cell` method in the `main.cpp` file to use it. 
+
 How to use
 ==========
 
@@ -44,7 +53,7 @@ How to use
 
 2. Read the theory.pdf file which appeared. 
 
-3. (Important!) Ask questions whenever any detail is not clear.
+3. (Important!) Ask questions whenever any detail is not clear. Find errors and typos and correct them.
 
 4. Go to main.cpp file and find the 'main' function. Fill it with the initializion of the mesh and data output. For example, 
       
@@ -77,7 +86,7 @@ The parameters are explained in theory.pdf.
 
 7. Try to understand what is being plotted and how to change this inital condition.
 
-8. (Important!) Ask questions whenever anything is not working.
+8. (Important!) Ask questions whenever anything is not working. Find errors in the code and correct them. 
 
 9. Vary the mesh template parameters, plot the output and see how the parameter choice affects the representation of the initial function on the mesh. 
 
