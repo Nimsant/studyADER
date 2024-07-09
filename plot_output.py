@@ -44,8 +44,9 @@ def plotfile(ifile, filename):
     ax.set_title(f"{float(filename.split('_')[1].split('.')[0])*float(data['dt'])}")
     x = np.linspace( 0, data['N']*data['dx'],200 )
 
+    #ax.set_xticks([0,.5,1])
     ax.grid()
-    ax.set_ylim(-.02,.02)
+    #ax.set_ylim(-.02,.02)
     ax.legend()
     fig.canvas.draw()
 

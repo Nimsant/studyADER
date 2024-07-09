@@ -29,6 +29,7 @@ template <int M> ftype deriv_polynomial(int l, ftype x){
 #include "gas.cpp"
 #include "Advection.cpp"
 #include "Burgers.cpp"
+#include "nonConservativeBurgers.cpp"
 #include "flux.cpp"
 #include "eqs4testing.cpp"
 
@@ -45,7 +46,7 @@ struct DumbserMethod {
 
   bool is_source_cell(int ix){ 
     //return true; 
-    if (ix==N/2)  return true; 
+    //if (ix==N/2)  return true; 
     return false;
   };
 
@@ -239,7 +240,8 @@ struct DumbserMethod {
           T qR {boundary_0_project_at_ti(q, ikt)};
           for (int iq=0; iq<NQ; iq++) {
             //Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * CIRFlux(qL,qR,dx,dt)[iq];  // for linear systems 
-            Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * SolomonOsherFlux(qL,qR,dx,dt)[iq]; // for all systems
+            //Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * SolomonOsherFlux(qL,qR,dx,dt)[iq]; // for all systems
+            Flux_integrated_dt[iq] += dt * GAUSS_WEIGHTS[Mt][ikt] * nonConservativeFlux(qL,qR,dx,dt)[iq]; // for all systems
           }
         }
         for (int iq=0; iq<NQ; iq++) {
@@ -389,55 +391,26 @@ void several_full_calc(ftype courant){
 
 int main() {
   fmt::print(" {:>8} {:>8} {:>8} {:>6} {:>4} {:>4} {:>4} {:>16} {:>16}\n","dx", "dt", "T", "N", "NQ", "NBx", "NBt", "L2", "Linf");
-  /*
-    for (const auto courant_i : { 0.5, 0.1, 0.05, 0.01, 0.005, .001, 0.0005}) {
-      several_full_calc<0,0>(courant_i);
-
-      several_full_calc<1,0>(courant_i);
-      several_full_calc<1,1>(courant_i);
-
-      several_full_calc<2,0>(courant_i);
-      several_full_calc<2,1>(courant_i);
-      several_full_calc<2,2>(courant_i);
-
-      several_full_calc<3,0>(courant_i);
-      several_full_calc<3,1>(courant_i);
-      several_full_calc<3,2>(courant_i);
-      several_full_calc<3,3>(courant_i);
-
-      several_full_calc<4,0>(courant_i);
-      several_full_calc<4,1>(courant_i);
-      several_full_calc<4,2>(courant_i);
-      several_full_calc<4,3>(courant_i);
-      several_full_calc<4,4>(courant_i);
-
-      several_full_calc<5,1>(courant_i);
-      several_full_calc<5,5>(courant_i);
-
-      several_full_calc<6,1>(courant_i);
-      several_full_calc<6,6>(courant_i);
-
-      several_full_calc<7,7>(courant_i);
-    }
-    */
   {
 
-      DumbserMethod<5, 5, seismic::Seismic, 160> mesh_calc;
-      mesh_calc.set_Lx_Courant(1,.02);
+      DumbserMethod<0, 0, nonConservativeBurgers::Burgers, 1500> mesh_calc;
+      mesh_calc.set_Lx_Courant(6,.001);
 
-      eqs4testing::model.set(mesh_calc.Lx);// >>>>>>>>>>>>>>> ? <<<<<<<<<<<<<<<<
+      //eqs4testing::model.set(mesh_calc.Lx);// the solution needs to know the domain size.
 
       mesh_calc.init();
       int istep = 0;
       mesh_calc.print_all(istep);
-      const int Tmax = 1/mesh_calc.dt;
-      int period = Tmax/10;
-      period = (period>0)?period:Tmax;
-      for (; istep < Tmax; istep++) {
-//fmt::print("{:8}/{:8}\n", istep, Tmax);
+      istep++;
+
+      //for (; istep < floor(mesh_calc.Tmax/mesh_calc.dt+0.5); istep++) {
+      for (; istep < 10; istep++) {
+        fmt::print("istep {}\n",istep);
         mesh_calc.update(istep);
-        if ( (istep+1) % period == 0)mesh_calc.print_all(istep);
+        //if (istep%1000==0) 
+          mesh_calc.print_all(istep);
       }
+      mesh_calc.print_all(istep);
       //mesh_calc.ADER_update(istep);
       //istep++;
       //mesh_calc.init(istep*mesh_calc.dt);

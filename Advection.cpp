@@ -14,7 +14,7 @@ struct Advection{
   }
 
   void fromInit(ftype x, ftype Lx){
-    ftype step = (x>DEFINED_N/2)? 1:0;
+    ftype step = (x>Lx/2)? 1:0;
     step = 2*step-1;
     //u =  {step, step/sqrt(model.a)};
     u =  {sin(2*M_PI*x/Lx), sin(2*M_PI*x/Lx)/sqrt(model.a)};

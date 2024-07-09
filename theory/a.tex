@@ -1,6 +1,6 @@
-\documentclass{article}
+\documentclass[a5paper]{article}
 \usepackage{geometry}
-\geometry{landscape, margin=5mm}
+\geometry{landscape, margin=12mm}
 \usepackage{amsmath}
 \usepackage{listings}
 \usepackage[usenames.dvipsnames]{xcolor}
@@ -12,6 +12,7 @@
 \definecolor{s}{HTML}{277DA1}
 \definecolor{f}{HTML}{AA3DAA}
 \definecolor{gray}{HTML}{888888}
+\definecolor{Blue}{HTML}{8888FF}
 %\definecolor{gray}{HTML}{F0F0F6}
 %\definecolor{gray}{HTML}{E4E8EE}
 
@@ -144,11 +145,12 @@ We seek to build an expression for  $\color{o} {u_p}$ at $\tau = 1$.
 Below is the usual expression for finite element methods, which is obtained by integrating the flux term by parts. 
 We introduce  ${\color{s} \mathsf{F}_\text{right}}$ and ${\color{s} \mathsf{F}_\text{left}}$ that express the flux over the element boundary. 
 Instead of evaluating these as  $F_p (\pmb u)$, the expression for a solution of the Riemann problem is taken.
-\begin{equation}
+\begin{align}
+\begin{split}
   {\color{k} \mathsf{u}^+_{pl_\xi} }
   \langle {\color{o} \psi_{l_\xi} (\xi(x)) } 
   {\color{z} \psi_{k_\xi} (\xi) } \rangle -
-  {\color{f} \mathsf{w}_{pl_\xi} } 
+  &  {\color{f} \mathsf{w}_{pl_\xi} } 
   \langle {\color{o} \psi_{l_\xi} (\xi(x)) } 
   {\color{z} \psi_{k_\xi} (\xi) } \rangle + 
   {\color{z} \int_0^1 d\tau \left( 
@@ -166,13 +168,14 @@ Instead of evaluating these as  $F_p (\pmb u)$, the expression for a solution of
   {\color{o} F_p (\pmb u)}
   \D{\psi_{k_\xi}}{\xi}
   d\xi
-  \right) = }
- {\color{z}  
+  \right) = } \\ =
+  &{\color{z}  
   \int_0^1 d\xi
   \psi_{k_\xi} (\xi) 
   \int_0^1 d\tau}
   {\color{o} S_p}.
-\end{equation}
+\end{split}
+\end{align}
 
 We get the explicit expression for the sought value. 
 Now we need to decide on the expression for fluxes and evaluate the integrals on the right side.
@@ -293,7 +296,7 @@ This way, we can expose the known values:
  {\color{z} \cdot \int_0^1 \int_0^1 }
  \D {\color{o} u_p} {\tau} 
  {\color{z} \theta_k (\xi,\tau) }
- {\color{z} d\xi d\tau }  =
+  {\color{z} d\xi d\tau }  & =
  {\color{k} q_{pl}}
  {\color{o} \psi_{l_\tau}(1) }
  {\color{z} \psi_{k_\tau}(1) } 
@@ -304,8 +307,8 @@ This way, we can expose the known values:
  {\color{z} \psi_{k_\tau}(0) } 
  {\color{z} \int_0^1 }
  {\color{o} \psi_{l_\xi}(\xi) }
- {\color{z} \psi_{k_\xi}(\xi) d\xi} - 
- {\color{k} q_{pl}}
+ {\color{z} \psi_{k_\xi}(\xi) d\xi} - \\ -
+  &{\color{k} q_{pl}}
  {\color{z} \int_0^1 } 
  {\color{o} \psi_{l_\xi}(\xi) }
  {\color{z} \psi_{k_\xi}(\xi) d\xi} 
@@ -327,14 +330,14 @@ Note that the summation index is $l :\{l_\xi,l_\tau\}$, and $k$ (i.e.,  $k = N_{
 \begin{align} \begin{split}
   {\color{k} q_{pl}}
   {\color{z} \delta_{l_\xi k_\xi} w_{k_\xi}} 
-  \left(
+  &\left(
      {\color{o} \psi_{l_\tau}(1) }
      {\color{z} \psi_{k_\tau}(1) } - 
      {\color{z} \int_0^1 }
      {\color{o} \psi_{l_\tau}(\tau) }
      {\color{z} \D{\psi_{k_\tau}(\tau)}{\tau} d\tau}
-  \right) = 
-  {\color{f} \mathsf{w}_{pl_\xi}}
+  \right) = \\ =
+  &{\color{f} \mathsf{w}_{pl_\xi}}
   {\color{z} \psi_{k_\tau}(0) }
   {\color{z} \delta_{l_\xi k_\xi} w_{k_\xi}} - 
   {\color{o} \mathcal{F}_{pl_\xi l_\tau}  ( {\color{k} \pmb q_{l}})}
@@ -343,8 +346,8 @@ Note that the summation index is $l :\{l_\xi,l_\tau\}$, and $k$ (i.e.,  $k = N_{
   {\color{z} \psi_{k_\tau}(\tau) d\tau} 
   {\color{z} \int_0^1 }
   {\color{o} \psi_{k_\xi}(\xi) }
-  {\color{z} \D{\psi_{l_\xi}(\xi)}{\xi} d\xi} + 
-  {\color{z} \int_0^1 } 
+  {\color{z} \D{\psi_{l_\xi}(\xi)}{\xi} d\xi} + \\ +
+  &{\color{z} \int_0^1 } 
   {\color{o} \psi_{l_\tau}(\tau) }
   {\color{z} \psi_{k_\tau}(\tau) d\tau} 
   {\color{z} \int_0^1 }
@@ -534,6 +537,7 @@ The integral is taken with the Gauss-Legendre quadrature:
 
 where $w_j$ and $s_j$ are the Gaussian weights and quadrature points respectively. 
 
+\clearpage
 \section{Full algorithm}\label{sec:algorithm}
 
 The data type for the solution vector  $\color o u_p$, $p=1..N_Q$ is 
@@ -686,6 +690,247 @@ The code includes
   \item the \lstinline{PMpolynoms.py} file which generates the coefficients that are obtained from the choice of the Lagrange polynomial basis;
   \item the \lstinline{plot_error.py} and \lstinline{plot_output.py} for visualization of results. 
   \item the \lstinline{Makefile}
+\end{itemize}
+
+The  \lstinline{DumbserMethod} class is a template class with parameters:
+\begin{itemize}
+  \item \lstinline{int Mx}, the order of basis polynomials in space; \lstinline{NBx = Mx+1}. 
+  \item \lstinline{int Mt}, the order of basis polynomials in space; \lstinline{NBt = Mt+1}.
+  \item \lstinline{typename T}, the order of basis polynomials in space;
+  \item \lstinline{int N}, number of spatial elements.
+\end{itemize}
+
+\clearpage
+The computation consists of several steps:
+
+\begin{itemize}
+  \item Initialize method. 
+    \begin{lstlisting}
+      DumbserMethod<1, 1, gas::Gas, 100> mesh_calc;
+    \end{lstlisting}
+  \item set the domain physical size and the time step through the courant number (speed assumed to be 1).
+    \begin{lstlisting}
+      mesh_calc.set_Lx_Courant(1,.2);
+    \end{lstlisting}
+  \item Initialization
+    \begin{lstlisting}
+      mesh_calc.init();
+    \end{lstlisting}
+  \item Update
+    \begin{lstlisting}
+      mesh_calc.update(istep);
+    \end{lstlisting}
+  \item ADER update 
+    \begin{lstlisting}
+      mesh_calc.ADER_update(istep);
+    \end{lstlisting}
+  \item dump results
+    \begin{lstlisting}
+      mesh_calc.print_all(istep);
+    \end{lstlisting}
+  \item  dump approximation error
+    \begin{lstlisting}
+      mesh_calc.print_error(istep);
+    \end{lstlisting}
+\end{itemize}
+
+%      //eqs4testing::model.set(mesh_calc.Lx);// >>>>>>>>>>>>>>> ? <<<<<<<<<<<<<<<<
+%
+%      mesh_calc.init();
+%      int istep = 0;
+%      mesh_calc.print_all(istep);
+%
+%      for (; istep < floor(mesh_calc.Tmax/mesh_calc.dt+0.5); istep++) {
+%        fmt::print("istep {}\n",istep);
+%        mesh_calc.update(istep);
+%        mesh_calc.print_all(istep);
+%      }
+%      mesh_calc.print_all(istep);
+%      //mesh_calc.ADER_update(istep);
+%      //istep++;
+%      //mesh_calc.init(istep*mesh_calc.dt);
+%      //mesh_calc.print_all(-istep);
+%      mesh_calc.print_error(istep);
+
+\clearpage
+\section{Physical models}\label{sec:models}
+
+\subsection{Equations for testing}\label{sec:eqs4testing}
+
+\begin{align}
+  \D u t + \D {}x \left(
+    \frac 12 v^2
+  \right) = - \nu (u - u_e) + 
+   \D {u_e} t + \D {}x \left(
+    \frac 12 {v_e}^2
+  \right)\\
+  \D v t + \D {}x \left(
+    \frac 12 u^2
+  \right) = - \nu (v - v_e) + 
+   \D {v_e} t + \D {}x \left(
+    \frac 12 {u_e}^2
+  \right)
+\end{align}
+
+\begin{align}
+  u_e (x,t) = U_0 + A_u\sin(kx-\omega t), \\
+  v_e (x,t) = V_0 + A_v\cos(kx-\omega t).
+\end{align}
+
+\begin{equation}
+  \nu =10; \quad
+  U_0 =4; \quad
+  V_0 =6; \quad
+  A_u =0.1; \quad
+  A_v =0.3
+\end{equation}
+
+\begin{equation}
+  {\color{o} \pmb u} = 
+  \begin{pmatrix}
+    u\\ v
+  \end{pmatrix}; \quad
+  {\color{o} \pmb F (\pmb u )} = 
+  \begin{pmatrix}
+    \frac 12 v^2\\ 
+    \frac 12 u^2
+  \end{pmatrix}; \quad
+  {\color{o} \pmb S (\pmb u )} = 
+  \begin{pmatrix}
+    -\nu(u-u_e) +
+    \D {u_e} t + \D {}x \left(
+    \frac 12 {v_e}^2
+    \right)
+    \\ 
+    -\nu(v-v_e) +
+    \D {v_e} t + \D {}x \left(
+    \frac 12 {u_e}^2
+    \right)
+  \end{pmatrix}; \quad
+\end{equation}
+
+\begin{equation}
+  \pmb A =
+  \begin{pmatrix}
+    0 & v\\
+    u & 0
+  \end{pmatrix}.
+\end{equation}
+
+\begin{equation}
+  \pmb A = \pmb K \pmb \Lambda \pmb K^{-1}.
+\end{equation}
+
+\begin{equation}
+  \pmb \Lambda =
+  \begin{pmatrix}
+    -\sqrt{uv} & 0\\
+    0 & \sqrt{uv}
+  \end{pmatrix}; \quad
+  \pmb K =
+  \begin{pmatrix}
+    1 & 1\\
+    -\sqrt{\frac vu} & 
+    \sqrt{\frac vu} & 
+  \end{pmatrix}; 
+\end{equation}
+
+\subsection{seismic}\label{sec:seismic}
+
+\begin{align}
+  &\D {\sigma_x} t = (\lambda+2\mu) \D {v_x} x + S_1(x,t);\\
+  &\rho \D {v_x} t =  \D {\sigma_x} x + S_2(x,t)
+\end{align}
+
+\begin{equation}
+  c_p = \sqrt{
+    \frac {\lambda +2\mu}\rho
+  }
+\end{equation}
+
+\begin{equation}
+  {\color{o} \pmb u} = 
+  \begin{pmatrix}
+    \sigma_x \\ v_x
+  \end{pmatrix}; \quad
+  {\color{o} \pmb F (\pmb u )} = 
+  \begin{pmatrix}
+   - \rho c_p^2 \\ 
+   - \frac 1 \rho
+  \end{pmatrix}.
+\end{equation}
+
+\begin{equation}
+  \pmb A =
+  \begin{pmatrix}
+    0 & -\rho c_p^2\\
+    -\frac 1\rho & 0
+  \end{pmatrix}.
+\end{equation}
+
+\begin{equation}
+  \pmb A = \pmb K \pmb \Lambda \pmb K^{-1}.
+\end{equation}
+
+\begin{equation}
+  \pmb \Lambda =
+  \begin{pmatrix}
+    -c_p & 0\\
+    0 & c_p
+  \end{pmatrix}; \quad
+  \pmb K =
+  \begin{pmatrix}
+    1 & 1\\
+    -\frac {c_p}\rho & 
+     \frac {c_p}\rho & 
+  \end{pmatrix}; 
+\end{equation}
+
+\begin{equation}
+  \pmb \Lambda^- =
+  \begin{pmatrix}
+    -c_p & 0\\
+    0 & 0
+  \end{pmatrix}; \quad
+  \pmb \Lambda^+ =
+  \begin{pmatrix}
+    0 & 0\\
+    0 & c_p
+  \end{pmatrix}
+\end{equation}
+
+\begin{equation}
+  \pmb F^+ (\pmb u ) =  \pmb A^+ \pmb u 
+  = \pmb K \pmb \Lambda^+ \pmb K^{-1} = \frac 12
+  \begin{pmatrix}
+     -\rho c_p^2 v_x + c_p \sigma_x \\
+     c_p v_x - \frac 1\rho \sigma_x \\
+  \end{pmatrix}.
+\end{equation}
+
+\begin{equation}
+  \pmb F^- (\pmb u ) =  \pmb A^- \pmb u 
+  = \pmb K \pmb \Lambda^- \pmb K^{-1} = \frac 12
+  \begin{pmatrix}
+     -\rho c_p^2 v_x - c_p \sigma_x \\
+     - c_p v_x - \frac 1\rho \sigma_x \\
+  \end{pmatrix}.
+\end{equation}
+
+
+\begin{equation}
+  \pmb S (x,t) = 
+  = \pmb K_i s(t) \delta(x-x_0),\quad i=1,2.
+\end{equation}
+\subsection{seismic}\label{sec:seismic}
+
+
+\section{Future Work}
+\begin{itemize}
+  \item A posteriori limiter
+  \item AMR?
+  \item Non-conservative Baer-Nunziato model
+  \item 3D
 \end{itemize}
 
 

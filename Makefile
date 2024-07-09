@@ -1,4 +1,3 @@
-
 #https://tech.davis-hansson.com/p/make/
 SHELL := bash
 GCC :=g++
@@ -8,7 +7,7 @@ GCC :=g++
 MAKEFLAGS += --warn-undefined-variables
 MAKEFLAGS += --no-builtin-rules
 
-MODELS = Burgers.cpp Advection.cpp seismic.cpp eqs4testing.cpp gas.cpp
+MODELS = Burgers.cpp nonConservativeBurgers.cpp Advection.cpp seismic.cpp eqs4testing.cpp gas.cpp
 
 FLUX = flux.cpp
 
@@ -35,7 +34,8 @@ main: main.o
 
 run: main 
 	rm -f *.dat
-	./$< > run.log
+	./$<
+	#./$< > run.log
 .PHONY: run
 
 show: run
