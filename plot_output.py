@@ -45,7 +45,6 @@ def plotfile(ifile, filename):
     x = np.linspace( 0, data['N']*data['dx'],200 )
 
     ax.grid()
-    ax.set_ylim(-.02,.02)
     ax.legend()
     fig.canvas.draw()
 
@@ -62,7 +61,6 @@ def nextfile(event):
         inum = (inum-1+len(droplist))%len(droplist)
     filename = list(sorted(droplist))[inum]
     plotfile(inum, filename)
-
 
 
 cid = fig.canvas.mpl_connect('key_press_event', nextfile)

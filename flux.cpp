@@ -6,40 +6,15 @@ auto CIRFlux(T uL, T uR, ftype dx, ftype dt){
   }
   return w;
 }
-template<typename T>
-auto LaxFlux(T uL, T uR, ftype dx, ftype dt){
-  T w {};
-  for (int iq=0; iq< T::NQ; iq++) {
-    w[iq] = 0.5*(uL.Flux()[iq] + uR.Flux()[iq]) - 0.5 * (dx/dt) *(uR[iq] - uL[iq]);
-  }
-  return w;
-}
-template<typename T>
-auto RusanovFlux(T uL, T uR, ftype dx, ftype dt){
-  T w {};
-  auto fL = uL.Flux();
-  auto fR = uR.Flux();
-  T f{};
-  for (int iq=0; iq< T::NQ; iq++){
-    f [iq]= (fR[iq]>fL[iq])?fR[iq]:fL[iq];
-  }
-  for (int iq=0; iq< T::NQ; iq++) {
-    w[iq] = 0.5*(uL.Flux()[iq] + uR.Flux()[iq]) - 0.5 * f[iq] *(uR[iq] - uL[iq]);
-  }
-  return w;
-}
 
 template<typename T>
 auto Amod(T u) {
   auto Aflux = u.Amatrix();
-  //Aflux.print("A");
+
   arma::cx_vec eigval;
   arma::cx_mat cx_eigvec;
   eig_gen(eigval,cx_eigvec, Aflux);
   arma::mat eigvec = arma::real(cx_eigvec);
-
-  //eigval.print("eigval:");
-  //cx_eigvec.print("cx_eigvec:");
 
   arma::mat Lmod (T::NQ, T::NQ, arma::fill::zeros);
   for (int iq = 0; iq<T::NQ; iq++) {
@@ -47,8 +22,6 @@ auto Amod(T u) {
     Lmod(iq,iq) = (l>0)? l: -l;
   }
   arma::mat _Amod = eigvec * Lmod *eigvec.i();
-  //Lmod.print("Lmod");
-  //amod.print("amod");
   return _Amod;
 }
 
@@ -70,7 +43,6 @@ auto SolomonOsherFlux(T uL, T uR, ftype dx, ftype dt){
     arma::mat Amodk = Amod(wk);
     Aint_dQ += GAUSS_WEIGHTS[Oorder][ik] * Amodk;
   }
-  //Aint_dQ.print("Aintegrated");
 
   T w {};
 

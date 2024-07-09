@@ -45,8 +45,7 @@ namespace seismic {
       ftype omega = k*m.cp;
       ftype wave = sin(k*x - omega*t);
 
-      //u =  {wave, - wave/m.rho/m.cp};
-      u =  {0, 0};
+      u =  {wave, - wave/m.rho/m.cp};
     }
 
     auto Flux(){

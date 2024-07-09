@@ -45,7 +45,7 @@ struct DumbserMethod {
 
   bool is_source_cell(int ix){ 
     //return true; 
-    if (ix==N/2)  return true; 
+    //if (ix==N/2)  return true; 
     return false;
   };
 
@@ -170,7 +170,6 @@ struct DumbserMethod {
           S[il] = q[il].Source( dt*(istep + GAUSS_ROOTS[Mt][il%NBt]), dx*(ix + GAUSS_ROOTS[Mx][il/NBt]) , ((il/NBt)==0)?1:0 );
           for (int iq=0; iq<NQ; iq++) {
             S[il][iq] *= dt * GAUSS_WEIGHTS[Mx][il/NBt] * GAUSS_WEIGHTS[Mt][il%NBt];
-            //fmt::print("{} {}     ||S||    {:20.18}\n",il,iq,S[il][iq]);
           }
         }
       }
@@ -184,7 +183,6 @@ struct DumbserMethod {
               q[ik][iq] += K1inv(ik,il)*W[il][iq] - K2(ik,il) * (dt/dx) * F[il][iq];
               if (is_source_cell(ix)) {
                 q[ik][iq] += K1inv(ik,il) * S[il][iq];
-                //fmt::print("{} {}     ||q||    {:20.18}\n",ik,iq,q[ik][iq]);
               }
             }
           }
@@ -264,7 +262,7 @@ struct DumbserMethod {
             }
             if (is_source_cell((ix+N-1)%N)){ 
               for (int ilt=0; ilt<NBt; ilt++) {
-                T S = left_cell_q[ikx*NBt + ilt].Source( dt*(istep + GAUSS_ROOTS[Mt][ilt]), dx*((ix+N-1)%N + GAUSS_ROOTS[Mx][ikx]) , (ikx==0)?1:0 );
+                T S = left_cell_q[ikx*NBt + ilt].Source( dt*(istep + GAUSS_ROOTS[Mt][ilt]), dx*((ix+N-1)%N + GAUSS_ROOTS[Mx][ikx]) );
                 for (int iq=0; iq<NQ; iq++){
                   addsourcep[iq] += S[iq] * GAUSS_WEIGHTS[Mt][ilt] * GAUSS_WEIGHTS[Mx][ikx];
                 }
@@ -289,19 +287,6 @@ struct DumbserMethod {
 
 
   void print_error (int istep) {
-    //std::string funcfilename = fmt::format("error_{}.dat",istep);
-    //std::FILE* file = std::fopen( funcfilename.c_str(), "w");
-    //std::fclose(file);
-    /*
-    for (int ibx=0; ibx<NBx; ibx++) {
-      ftype xikx = dx * (ix + GAUSS_ROOTS[Mx][ibx]);
-      T udata; udata.fromInit(xikx, Lx, t);
-      for (int iq=0; iq<NQ; iq++) {
-        U[ibx][iq] = udata[iq];
-      }
-    }
-    */
-    
     ftype L2 {0};
     ftype Linf {0};
     for (int ix=0; ix<N; ix++){
@@ -378,7 +363,6 @@ void one_full_calc(ftype courant){
 
 template<int MX, int MT>
 void several_full_calc(ftype courant){
-  //one_full_calc<MX,MT,4>(courant);
   one_full_calc<MX,MT,4>(courant);
   one_full_calc<MX,MT,8>(courant);
   one_full_calc<MX,MT,10>(courant);
@@ -388,41 +372,9 @@ void several_full_calc(ftype courant){
 }
 
 int main() {
-  fmt::print(" {:>8} {:>8} {:>8} {:>6} {:>4} {:>4} {:>4} {:>16} {:>16}\n","dx", "dt", "T", "N", "NQ", "NBx", "NBt", "L2", "Linf");
-  /*
-    for (const auto courant_i : { 0.5, 0.1, 0.05, 0.01, 0.005, .001, 0.0005}) {
-      several_full_calc<0,0>(courant_i);
-
-      several_full_calc<1,0>(courant_i);
-      several_full_calc<1,1>(courant_i);
-
-      several_full_calc<2,0>(courant_i);
-      several_full_calc<2,1>(courant_i);
-      several_full_calc<2,2>(courant_i);
-
-      several_full_calc<3,0>(courant_i);
-      several_full_calc<3,1>(courant_i);
-      several_full_calc<3,2>(courant_i);
-      several_full_calc<3,3>(courant_i);
-
-      several_full_calc<4,0>(courant_i);
-      several_full_calc<4,1>(courant_i);
-      several_full_calc<4,2>(courant_i);
-      several_full_calc<4,3>(courant_i);
-      several_full_calc<4,4>(courant_i);
-
-      several_full_calc<5,1>(courant_i);
-      several_full_calc<5,5>(courant_i);
-
-      several_full_calc<6,1>(courant_i);
-      several_full_calc<6,6>(courant_i);
-
-      several_full_calc<7,7>(courant_i);
-    }
-    */
+  //fmt::print(" {:>8} {:>8} {:>8} {:>6} {:>4} {:>4} {:>4} {:>16} {:>16}\n","dx", "dt", "T", "N", "NQ", "NBx", "NBt", "L2", "Linf");
   {
-
-      DumbserMethod<5, 5, seismic::Seismic, 160> mesh_calc;
+      DumbserMethod<5, 5, seismic::Seismic, 16> mesh_calc;
       mesh_calc.set_Lx_Courant(1,.02);
 
       eqs4testing::model.set(mesh_calc.Lx);// >>>>>>>>>>>>>>> ? <<<<<<<<<<<<<<<<
@@ -434,7 +386,6 @@ int main() {
       int period = Tmax/10;
       period = (period>0)?period:Tmax;
       for (; istep < Tmax; istep++) {
-//fmt::print("{:8}/{:8}\n", istep, Tmax);
         mesh_calc.update(istep);
         if ( (istep+1) % period == 0)mesh_calc.print_all(istep);
       }
