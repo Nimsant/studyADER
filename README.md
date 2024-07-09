@@ -11,6 +11,7 @@ The source paper with the mathematical formulation which is closest to the code 
 The following papers are also used:
 
  [2] https://doi.org/10.1016/j.jcp.2008.05.025
+ 
  [3] https://doi.org/10.1016/j.jcp.2007.12.005
 
 The present code is to be used to 
@@ -63,7 +64,8 @@ The parameters are explained in theory.pdf.
 
 6. In the plot, 
 
-   6.1 The first component of the solution vector is plotted vs the x axis. 
+   6.1 The first component of the solution vector is plotted vs the x axis.
+   
    6.2 If several outputs are present (i.e, the `print_all` method is called several times with different argument)
 
 ```
