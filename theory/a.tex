@@ -934,4 +934,328 @@ The computation consists of several steps:
 \end{itemize}
 
 
+\clearpage
+\section{DG with non-conservative terms} \label{sec:DGnoncons}
+
+Let us take a system of equations  for vector of variables $\color{o}{\mathbf{u}}$, its components are $u_p$, $p=1..N_Q$. 
+\begin{equation} \label{init}
+ \D {\color{o} u_p} {t} + 
+ \D {\color{o} F_p (\pmb u)}{x} +
+  {\color{o} B_{pq}(\pmb u)} \D {\color{o} u_q} {x}
+  = 
+  {\color{o} S_p(\pmb u, x, t)} \quad
+\end{equation}
+
+We introduce dimensionless fluxes and sources as:
+\begin{equation} 
+  \pmb F^* = \frac{\Delta t}{\Delta x} \pmb F; \quad
+  \pmb B^* = \frac{\Delta t}{\Delta x} \pmb B; \quad
+  \pmb S^* =       \Delta t            \pmb S.
+\end{equation}
+
+The system with   $\pmb F^*$ and $\pmb S^*$ is as follows. We multiply it buy a basis function (Lagrange polynomial) and integrate over the element. 
+\begin{equation} \label{DG}
+\left.
+\left.
+ \D {\color{o} u_p} {\tau} + 
+ \D {\color{o} F^*_p (\pmb u)}{\xi} 
+ +
+  {\color{o} B^*_{pq}(\pmb u)} \D {\color{o} u_q} {\xi}
+  = 
+  {\color{o} S^*_p(\pmb u, \xi(x), \tau(t))} \quad
+ \right| 
+ {\color{z} \cdot
+  \psi_{k_\xi} (\xi) }
+ \right| 
+ {\color{z} \cdot 
+  \int_0^1 d\xi
+  \int_0^1 d\tau}
+\end{equation}
+
+We introduce  ${\color{s} \mathsf{F}_\text{right}}$ and ${\color{s} \mathsf{F}_\text{left}}$ that express the flux over the element boundary. 
+Instead of evaluating these as  $F_p (\pmb u)$, the expression for a solution of the Riemann problem is taken.
+
+\begin{align}
+\begin{split}
+  {\color{k} \mathsf{u}^+_{pl_\xi} }
+  \langle {\color{o} \psi_{l_\xi} (\xi(x)) } 
+  {\color{z} \psi_{k_\xi} (\xi) } \rangle -
+  &  {\color{f} \mathsf{w}_{pl_\xi} } 
+  \langle {\color{o} \psi_{l_\xi} (\xi(x)) } 
+  {\color{z} \psi_{k_\xi} (\xi) } \rangle + 
+  {\color{z} \int_0^1 d\tau \left( 
+  \left.
+  {\color{s} \mathsf{F}_\text{right}  }
+  \psi_{k_\xi} 
+  \right|_{\xi=1}
+  - 
+  \left.
+  {\color{s} \mathsf{F}_\text{left}  }
+  \psi_{k_\xi} 
+  \right|_{\xi=0}
+  -
+  \int_0^1 
+  {\color{o} F_p (\pmb u)}
+  \D{\psi_{k_\xi}}{\xi}
+  d\xi
+  \right) = } \\ =
+  &{\color{z}  
+  \int_0^1 d\xi
+  \psi_{k_\xi} (\xi) 
+  \int_0^1 d\tau}
+  {\color{o} S_p}.
+\end{split}
+\end{align}
+
+We get the explicit expression for the sought value. 
+Now we need to decide on the expression for fluxes and evaluate the integrals on the right side.
+\begin{equation}
+  {\color{k} \mathsf{u}^+_{pk_\xi} }
+  w_{k_\xi}  = 
+  {\color{f} \mathsf{w}_{pk_\xi} } 
+  w_{k_\xi}  - 
+  {\color{z} \int_0^1 d\tau \left( 
+  \left.
+  {\color{s} \mathsf{F}_\text{right}  }
+  \psi_{k_\xi} 
+  \right|_{\xi=1}
+  - 
+  \left.
+  {\color{s} \mathsf{F}_\text{left}  }
+  \psi_{k_\xi} 
+  \right|_{\xi=0}
+  -
+  \int_0^1 
+  {\color{o} F_p (\pmb u)}
+  \D{\psi_{k_\xi}}{\xi}
+  d\xi
+  \right) + }
+ {\color{z}  
+  \int_0^1 d\xi
+  \psi_{k_\xi} (\xi) 
+  \int_0^1 d\tau}
+  {\color{o} S_p}.
+\end{equation}
+\section{ADER} \label{sec:ADER}
+
+The integrals in time can be computed after we use a predictor for $u$ in the $t^{(k)}<t<t^{(k)}+\Delta t$ range. 
+Let us integrate system again, similarly to (\ref{DG}), but with ${\color{z} \cdot  \theta_k (\xi,\tau) }$ such that :
+\begin{equation} \label{localADERinit}
+\left.
+\left.
+ \D {\color{o} u_p} {\tau} + 
+ \D {\color{o} F^*_p (\pmb u)}{\xi} +
+ {\color{o} B^*_p (\pmb u)}\D {\color{o} u_p }{\xi} = 
+ {\color{o} S^*_p} \quad
+ \right| 
+ {\color{z} \cdot
+  \theta_k (\xi,\tau) }
+ \right| 
+ {\color{z} \cdot \int_0^1 d\xi
+  \int_0^1 d\tau }
+\end{equation}
+
+Here, $l_\tau = 1... N_{Bt}$, $N_{Bt} = M_t +1$ where $M_x$ is the order of the temporal polynomial basis. 
+
+The expansion coefficients for sources and fluxes are evaluated as functions of $\pmb u$. 
+This is correct when the conditions for the Gauss quadrature (\ref{eq:gaussq}) are satisfied. 
+In other cases, we assume the expression is sufficiently precise. 
+\begin{equation}
+ {\color{o} u_p} \approx 
+ {\color{k} q_p (\xi,\tau)} = 
+ {\color{k} q_{pl_\xi l_\tau} } 
+ {\color{o} \psi_{l_\xi}(\xi)
+            \psi_{l_\tau}(\tau) } = 
+ {\color{k} q_{pl_\xi l_\tau} } 
+ {\color{o} \theta_{l}(\xi,\tau) }
+\end{equation}
+\begin{equation}
+{\color{z} \theta_l (\xi,\tau)= \psi_{l_\xi}(\xi)
+            \psi_{l_\tau}(\tau) }
+\end{equation}
+
+\begin{equation}
+{\color{o} F^*_p(\pmb u)} = 
+{\color{k} \mathcal{F}_{pl} }
+{\color{o} \theta_{l}(\xi,\tau) }; \quad {\color{k} \mathcal{F}_{pl}  \approx  F^*_p(\pmb q) }
+\end{equation}
+
+\begin{equation}
+{\color{o} S^*_p(\pmb u)} = 
+{\color{k} \mathcal{S}_{pl} }
+{\color{o} \theta_{l}(\xi,\tau) }; \quad {\color{k} \mathcal{S}_{pl}  \approx  S_p(\pmb q) }
+\end{equation}
+
+We need to find ${\color{k} q_{pl_\xi l_\tau} }$. 
+The initial condition at $\tau=0$ has to be taken into account. 
+Let us integrate the term with the time derivative by parts:
+
+\begin{equation}
+ {\color{z} \int_0^1 \int_0^1 }
+ \D {\color{o} u_p} {\tau} 
+ {\color{z} \theta_k (\xi,\tau) }
+ {\color{z} d\xi d\tau } =
+ {\color{z}
+   \int_0^1 \left( 
+     {\color{o} u_p} 
+     \left. \theta_{k} \right|_{\tau=0}^{\tau=1} - 
+     \int_0^1 {\color{o} u_p}
+     \D{\theta_k}{\tau} d\tau
+   \right) d\xi.
+ }
+\end{equation}
+
+This way, we can expose the known values:
+
+\begin{equation}
+ {\color{o}
+  u_p(\tau=0) } = 
+  {\color{f} \mathsf{w}_{pl_\xi}}
+ {\color{o} \psi_{l_\xi}(\xi) } ; \quad
+  {\color{k} q_{pl}}{\color{o}\psi_{l_\tau}(0)} = {\color{f} \mathsf{w}_{pl_\xi}}
+\end{equation}
+
+\begin{equation}
+ {\color{o}
+  u_p(\tau=1) } = 
+ {\color{k} q_{pl}}
+ {\color{o} \psi_{l_\tau}(1) }
+ {\color{o} \psi_{l_\xi}(\xi) }
+\end{equation}
+
+\begin{align} \begin{split}
+ {\color{z} \cdot \int_0^1 \int_0^1 }
+ \D {\color{o} u_p} {\tau} 
+ {\color{z} \theta_k (\xi,\tau) }
+  {\color{z} d\xi d\tau }  & =
+ {\color{k} q_{pl}}
+ {\color{o} \psi_{l_\tau}(1) }
+ {\color{z} \psi_{k_\tau}(1) } 
+ {\color{z} \int_0^1 }
+ {\color{o} \psi_{l_\xi}(\xi) }
+ {\color{z} \psi_{k_\xi}(\xi) d\xi} - 
+  {\color{f} \mathsf{w}_{pl_\xi}}
+ {\color{z} \psi_{k_\tau}(0) } 
+ {\color{z} \int_0^1 }
+ {\color{o} \psi_{l_\xi}(\xi) }
+ {\color{z} \psi_{k_\xi}(\xi) d\xi} - \\ -
+  &{\color{k} q_{pl}}
+ {\color{z} \int_0^1 } 
+ {\color{o} \psi_{l_\xi}(\xi) }
+ {\color{z} \psi_{k_\xi}(\xi) d\xi} 
+ {\color{z} \int_0^1 }
+ {\color{o} \psi_{l_\tau}(\tau) }
+ {\color{z} \D{\psi_{k_\tau}(\tau)}{\tau} d\tau} .
+\end{split}\end{align}
+
+\begin{equation}
+ { \int_0^1 }
+ { \psi_{l_\xi}(\xi) }
+ { \psi_{k_\xi}(\xi) d\xi  = \delta_{l_\xi k_\xi} w_{k_\xi}}.
+\end{equation}
+
+
+Finally, from (\ref{localADERinit}), we get the system of $N_{Btx} = N_{Bx} \cdot N_{Bt}$  equations for ${\color{k} q_{pk_\xi k_\tau} }$. 
+Note that the summation index is $l :\{l_\xi,l_\tau\}$, and $k$ (i.e.,  $k = N_{Bt}k_\xi+k_\tau$) is the number of the equation in the system.  
+
+\begin{align} \begin{split}
+  {\color{k} q_{pl}}
+  {\color{z} \delta_{l_\xi k_\xi} w_{k_\xi}} 
+  &\left(
+     {\color{o} \psi_{l_\tau}(1) }
+     {\color{z} \psi_{k_\tau}(1) } - 
+     {\color{z} \int_0^1 }
+     {\color{o} \psi_{l_\tau}(\tau) }
+     {\color{z} \D{\psi_{k_\tau}(\tau)}{\tau} d\tau}
+  \right) = \\ =
+  &{\color{f} \mathsf{w}_{pl_\xi}}
+  {\color{z} \psi_{k_\tau}(0) }
+  {\color{z} \delta_{l_\xi k_\xi} w_{k_\xi}} - 
+  {\color{o} \mathcal{F}_{pl_\xi l_\tau}  ( {\color{k} \pmb q_{l}})}
+  {\color{z} \int_0^1 } 
+  {\color{o} \psi_{l_\tau}(\tau) }
+  {\color{z} \psi_{k_\tau}(\tau) d\tau} 
+  {\color{z} \int_0^1 }
+  {\color{o} \psi_{k_\xi}(\xi) }
+  {\color{z} \D{\psi_{l_\xi}(\xi)}{\xi} d\xi} + \\ +
+  &{\color{z} \int_0^1 } 
+  {\color{o} \psi_{l_\tau}(\tau) }
+  {\color{z} \psi_{k_\tau}(\tau) d\tau} 
+  {\color{z} \int_0^1 }
+  {\color{o} \psi_{k_\xi}(\xi) }
+  {\color{z} {\psi_{l_\xi}(\xi)}
+  {\color{o} \mathcal{S}_{pl_\xi l_\tau} ( {\color{k} \pmb q_{l}}, \xi, \tau) }
+  d\xi}.
+\end{split}\end{align}
+
+\begin{align} \begin{split}
+     { \int_0^1 }
+     { \psi_{l_\tau}(\tau) }
+     { \D{\psi_{k_\tau}(\tau)}{\tau} d\tau } = 
+     \left. {w}_{l_\tau} \D{\psi_{k_\tau}}{\tau} \right|_{\tau=\tau_{l_\tau}}
+\end{split}\end{align}
+
+\begin{align} \begin{split}
+  {\color{k} q_{pl}}
+  { \delta_{l_\xi k_\xi} {w}_{k_\xi}} 
+  \left(
+     {\color{o} \psi_{l_\tau}(1) }
+     {\color{z} \psi_{k_\tau}(1) } - 
+     {\color{z}
+     \left. {w}_{l_\tau} \D{\psi_{k_\tau}}{\tau} \right|_{\tau=\tau_{l_\tau}}
+     }
+  \right) = 
+  {\color{f} \mathsf{w}_{pk_\xi}}
+  {\color{z} \psi_{k_\tau}(0) }
+  {\color{z} {w}_{k_\xi}} - 
+  {\color{o} \mathcal{F}_{pl}  ( {\color{k} \pmb q_{l}})}
+  \delta_{l_\tau k_\tau} {w}_{k_\tau} 
+     \left. {w}_{k_\xi} \D{\psi_{l_\xi}}{\xi} \right|_{\xi=\xi_{k_\xi}} + 
+  {\color{o} \mathcal{S}_{pl}  ( {\color{k} \pmb q_{l}})}
+  \delta_{l_\tau k_\tau} {w}_{k_\tau} 
+  \delta_{l_\xi k_\xi} {w}_{k_\xi} 
+\end{split}\end{align}
+
+We introduce new notations to shorten the expression. The $ K_{1,kl}$, $K_{\xi, kl}$ are $N_{Btx}\times N_{Ntx}$ matrices that can be found as soon as the polynomial basis is fixed. 
+${\color{f} W_k }$, 
+${\color{o} \mathcal{F}_{pl}  ( {\color{k} \pmb q_{l}})}$, 
+and  ${\color{o} \mathcal{S}_{pk}  ( {\color{k} \pmb q_{k}})}
+{w}_{k_\xi} {w}_{k_\tau} $
+are vectors of $N_{Btx}$ components.  
+\begin{equation}
+ K_{1,kl}
+ {\color{k} q_l } =
+ {\color{f} W_k } - K_{\xi, kl} 
+ {\color{o} \mathcal{F}_{pl}  ( {\color{k} \pmb q_{l}})} +
+ {\color{o} \mathcal{S}_{pk}  ( {\color{k} \pmb q_{k}})}
+{w}_{k_\xi} {w}_{k_\tau} 
+\end{equation}
+
+
+The system is solved by iterations. The index  $i$ is the number of iteration:
+\begin{equation}\label{eq:ADERiter}
+ {\color{k} q_m ^{(i+1)} } =
+ (K_{1}^{-1})_{mk} \left(
+ {\color{f} W_k } - K_{\xi, kl} 
+ {\color{o} \mathcal{F}_{pl}  ( {\color{k} \pmb q_{l}^{(i)} })} +
+ {\color{o} \mathcal{S}_{pk}  ( {\color{k} \pmb q_{k}^{(i)} })}
+{w}_{k_\xi} 
+{w}_{k_\tau} 
+ \right)
+\end{equation}
+
+\begin{equation}
+\boxed{
+ {\color{k} q_m ^{(i+1)} } =
+ (K_{1}^{-1})_{mk} 
+ {\color{f} W_k } -
+ (K_{1}^{-1} 
+ K_{\xi} )_{ml}
+ {\color{o} \mathcal{F}_{pl}  ( {\color{k} \pmb q_{l}^{(i)} })} +
+ (K_{1}^{-1})_{mk} 
+ {\color{o} \mathcal{S}_{pk}  ( {\color{k} \pmb q_{k}^{(i)} })}
+{w}_{k_\xi} 
+{w}_{k_\tau} 
+}
+\end{equation}
 \end{document}
