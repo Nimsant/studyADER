@@ -393,8 +393,8 @@ int main() {
   fmt::print(" {:>8} {:>8} {:>8} {:>6} {:>4} {:>4} {:>4} {:>16} {:>16}\n","dx", "dt", "T", "N", "NQ", "NBx", "NBt", "L2", "Linf");
   {
 
-      DumbserMethod<0, 0, nonConservativeBurgers::Burgers, 1500> mesh_calc;
-      mesh_calc.set_Lx_Courant(6,.001);
+      DumbserMethod<0, 0, nonConservativeBurgers::Burgers, 1> mesh_calc;
+      mesh_calc.set_Lx_Courant(6,.1);
 
       //eqs4testing::model.set(mesh_calc.Lx);// the solution needs to know the domain size.
 
