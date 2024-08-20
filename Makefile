@@ -7,7 +7,7 @@ GCC :=g++
 MAKEFLAGS += --warn-undefined-variables
 MAKEFLAGS += --no-builtin-rules
 
-MODELS = Burgers.cpp nonConservativeBurgers.cpp Advection.cpp seismic.cpp eqs4testing.cpp gas.cpp
+MODELS = nonConservativeBurgers.cpp
 
 FLUX = flux.cpp
 

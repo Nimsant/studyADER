@@ -672,7 +672,7 @@ First, $\color{f} \mathsf w_{pl}$ are known.
                  \int_0^1 }
                  {\color{o} \psi_{l_\xi}(\xi) }
                  {\color{z}
-                 \D{\psi_{k_\xi}}{\xi} d\xi = w_{l_\xi}\left. \D {\psi_{k_\xi}}{\xi}\right|_{\xi=\xi_{k_\xi}}.
+                 \D{\psi_{k_\xi}}{\xi} d\xi = w_{l_\xi}\left. \D {\psi_{k_\xi}}{\xi}\right|_{\xi=\xi_{l_\xi}}.
                  }
                \end{equation}
                is denoted as \lstinline{I4volflux} and it is evaluated once in the class constructor method. 
@@ -1065,7 +1065,7 @@ The expression for volumetric flux is
                  \int_0^1 }
                  {\color{o} \psi_{l_\xi}(\xi) }
                  {\color{z}
-                 \D{\psi_{k_\xi}}{\xi} d\xi = w_{l_\xi}\left. \D {\psi_{k_\xi}}{\xi}\right|_{\xi=\xi_{k_\xi}}.
+                 \D{\psi_{k_\xi}}{\xi} d\xi = w_{l_\xi}\left. \D {\psi_{k_\xi}}{\xi}\right|_{\xi=\xi_{l_\xi}}.
                  }
                \end{equation}
 
@@ -1094,5 +1094,276 @@ The explicit expression for the update of $u_p$ is:
   \right)
 \end{align}
 
+\clearpage
+\section{ADER} \label{sec:nonconsADER}
+
+Let us integrate system again, similarly to (\ref{DG}), but with ${\color{z} \cdot  \theta_k (\xi,\tau) }$ such that :
+\begin{equation} \label{localADERinit}
+\left.
+\left.
+ \D {\color{o} u_p} {\tau} + 
+ \D {\color{o} F^*_p (\pmb u)}{\xi} +
+  {\color{o} B^*{pq} } \D {\color{o}u_q}{\xi} 
+  = 
+ {\color{o} S^*_p} \quad
+ \right| 
+ {\color{z} \cdot
+  \theta_k (\xi,\tau) }
+ \right| 
+ {\color{z} \cdot \int_0^1 d\xi
+  \int_0^1 d\tau }
+\end{equation}
+
+\begin{equation}
+ {\color{o} u_p} \approx 
+ {\color{k} q_p (\xi,\tau)} = 
+ {\color{k} q_{pl_\xi l_\tau} } 
+ {\color{o} \psi_{l_\xi}(\xi)
+            \psi_{l_\tau}(\tau) } = 
+ {\color{k} q_{pl_\xi l_\tau} } 
+ {\color{o} \theta_{l}(\xi,\tau) }
+\end{equation}
+
+\begin{equation}
+{\color{z} \theta_l (\xi,\tau)= \psi_{l_\xi}(\xi)
+            \psi_{l_\tau}(\tau) }
+\end{equation}
+
+\begin{equation}
+{\color{o} F^*_p(\pmb u)} = 
+{\color{k} \mathcal{F}_{pl} }
+{\color{o} \theta_{l}(\xi,\tau) }; \quad {\color{k} \mathcal{F}_{pl}  \approx  F^*_p(\pmb q_l) }
+\end{equation}
+
+\begin{equation}
+{\color{o} B^*_p(\pmb u)} = 
+{\color{k} \mathcal{B}_{pl} }
+{\color{o} \theta_{l}(\xi,\tau) }; \quad {\color{k} \mathcal{B}_{pl}  \approx  B^*_p(\pmb q_l) }
+\end{equation}
+
+\begin{equation}
+{\color{o} S^*_p(\pmb u)} = 
+{\color{k} \mathcal{S}_{pl} }
+{\color{o} \theta_{l}(\xi,\tau) }; \quad {\color{k} \mathcal{S}_{pl}  \approx  S_p(\pmb q_l) }
+\end{equation}
+
+Let us integrate the term with the time derivative by parts:
+
+\begin{equation}
+ {\color{z} \int_0^1 \int_0^1 }
+ \D {\color{o} u_p} {\tau} 
+ {\color{z} \theta_k (\xi,\tau) }
+ {\color{z} d\xi d\tau } =
+ {\color{z}
+   \int_0^1 \left( 
+     {\color{o} u_p} 
+     \left. \theta_{k} \right|_{\tau=0}^{\tau=1} - 
+     \int_0^1 {\color{o} u_p}
+     \D{\theta_k}{\tau} d\tau
+   \right) d\xi.
+ }
+\end{equation}
+
+This way, we can expose the known values:
+
+\begin{equation}
+ {\color{o}
+  u_p(\tau=0) } = 
+  {\color{f} \mathsf{w}_{pl_\xi}}
+ {\color{o} \psi_{l_\xi}(\xi) } ; \quad
+  {\color{k} q_{pl}}{\color{o}\psi_{l_\tau}(0)} = {\color{f} \mathsf{w}_{pl_\xi}}
+\end{equation}
+
+\begin{equation}
+ {\color{o}
+  u_p(\tau=1) } = 
+ {\color{k} q_{pl}}
+ {\color{o} \psi_{l_\tau}(1) }
+ {\color{o} \psi_{l_\xi}(\xi) }
+\end{equation}
+
+\begin{align} \begin{split}
+ {\color{z} \cdot \int_0^1 \int_0^1 }
+ \D {\color{o} u_p} {\tau} 
+ {\color{z} \theta_k (\xi,\tau) }
+  {\color{z} d\xi d\tau }  & =
+ {\color{k} q_{pl}}
+ {\color{o} \psi_{l_\tau}(1) }
+ {\color{z} \psi_{k_\tau}(1) } 
+ {\color{z} \int_0^1 }
+ {\color{o} \psi_{l_\xi}(\xi) }
+ {\color{z} \psi_{k_\xi}(\xi) d\xi} - 
+  {\color{f} \mathsf{w}_{pl_\xi}}
+ {\color{z} \psi_{k_\tau}(0) } 
+ {\color{z} \int_0^1 }
+ {\color{o} \psi_{l_\xi}(\xi) }
+ {\color{z} \psi_{k_\xi}(\xi) d\xi} - \\ -
+  &{\color{k} q_{pl}}
+ {\color{z} \int_0^1 } 
+ {\color{o} \psi_{l_\xi}(\xi) }
+ {\color{z} \psi_{k_\xi}(\xi) d\xi} 
+ {\color{z} \int_0^1 }
+ {\color{o} \psi_{l_\tau}(\tau) }
+ {\color{z} \D{\psi_{k_\tau}(\tau)}{\tau} d\tau} .
+\end{split}\end{align}
+
+
+Finally, from (\ref{localADERinit}), we get the system of $N_{Btx} = N_{Bx} \cdot N_{Bt}$  equations for ${\color{k} q_{pk_\xi k_\tau} }$. 
+
+Note that the summation index is $l :\{l_\xi,l_\tau\}$, and $k$ (i.e.,  $k = N_{Bt}k_\xi+k_\tau$) is the number of the equation in the system.  
+
+The flux term becomes
+
+\begin{equation}
+ { \int_0^1 }
+ { \psi_{l_\tau}(\tau) }
+ { \psi_{k_\tau}(\tau) d\tau  = \delta_{l_\tau k_\tau} w_{k_\tau}}.
+\end{equation}
+
+\begin{align} \begin{split}
+     { \int_0^1 }
+     { \psi_{k_\xi}(\xi) }
+     { \D{\psi_{l_\xi}(\xi)}{\xi} d\xi } = 
+     \left. {w}_{k_\xi} \D{\psi_{l_\xi}}{\xi} \right|_{\xi=\xi_{k_\xi}}
+\end{split}\end{align}
+
+\begin{align} \begin{split}
+  {\color{o} \mathcal{F}_{pl_\xi l_\tau}  ( {\color{k} \pmb q_{l}})}
+  {\color{z} \int_0^1 } 
+  {\color{o} \psi_{l_\tau}(\tau) }
+  {\color{z} \psi_{k_\tau}(\tau) d\tau} 
+  {\color{z} \int_0^1 }
+  {\color{o} \psi_{k_\xi}(\xi) }
+  {\color{z} \D{\psi_{l_\xi}(\xi)}{\xi} d\xi} = 
+  {\color{o} \mathcal{F}_{pl_\xi l_\tau}  ( {\color{k} \pmb q_{l}})}
+  \delta_{l_\tau k_\tau} {w}_{k_\tau} 
+     \left. {w}_{k_\xi} \D{\psi_{l_\xi}}{\xi} \right|_{\xi=\xi_{k_\xi}}  = \\ =
+  {\color{o} \mathcal{F}_{pl_\xi k_\tau}  ( {\color{k} \pmb q_{l_\xi k_\tau}})}
+   {w}_{k_\tau} 
+     \left. {w}_{k_\xi} \D{\psi_{l_\xi}}{\xi} \right|_{\xi=\xi_{k_\xi}}   \equiv \color{k} \mathsf{F}_{pk}.
+\end{split}\end{align}
+
+in the non-conservative term, 
+if $B_{pq}=\color{o} B_{pql_\xi l_\tau} \psi_{l_\xi} \psi_{l_\tau}$, $q_q=\color{k} q_{qm_\xi m_\tau} \psi_{m_\xi} \psi_{m_\tau}$,
+
+\begin{equation}
+ { \int_0^1 }
+ { \psi_{m_\tau}(\tau) }
+ { \psi_{l_\tau}(\tau) }
+ { \psi_{k_\tau}(\tau) d\tau  = 
+  \delta_{m_\tau k_\tau} 
+  \delta_{l_\tau k_\tau} w_{k_\tau}}.
+\end{equation}
+
+\begin{align} \begin{split}
+     { \int_0^1 }
+     { \psi_{l_\xi}(\xi) }
+     { \psi_{k_\xi}(\xi) }
+     { \D{\psi_{m_\xi}(\xi)}{\xi} d\xi } = 
+     \delta_{l_\xi k_\xi} 
+     \left. {w}_{k_\xi} \D{\psi_{m_\xi}}{\xi} \right|_{\xi=\xi_{k_\xi}} 
+\end{split}\end{align}
+
+\begin{align} \begin{split}
+  {\color{o} \mathcal{B}_{pql_\xi l_\tau} ( {\color{k} \pmb q_{l}})}
+  {\color{k} q_{qm_\xi m_\tau} }
+  {\color{z} \int_0^1 } 
+  {\color{o} \psi_{l_\tau}(\tau) }
+  {\color{k} \psi_{m_\tau}(\tau) }
+  {\color{z} \psi_{k_\tau}(\tau) d\tau} 
+  {\color{z} \int_0^1 }
+  {\color{o} \psi_{l_\xi}(\xi) }
+  {\color{z} \psi_{k_\xi}(\xi) }
+  {\color{k} \D{\psi_{m_\xi}(\xi)}{\xi} d\xi} = 
+  {\color{o} \mathcal{B}_{pqk_\xi k_\tau}  ( {\color{k} \pmb q_{k}})}
+  {\color{k} q_{qm_\xi k_\tau} }
+  {w}_{k_\tau} {w}_{k_\xi} 
+     \left. \D{\psi_{m_\xi}}{\xi} \right|_{\xi=\xi_{k_\xi}}  \equiv \color{k} \mathsf{B}_{pk}
+\end{split}\end{align}
+
+In the source term, 
+\begin{align} \begin{split}
+  {\color{o} \mathcal{S}_{pl}  ( {\color{k} \pmb q_{l}})}
+  \delta_{l_\tau k_\tau} {w}_{k_\tau} 
+  \delta_{l_\xi k_\xi} {w}_{k_\xi}  = 
+  {\color{o} \mathcal{S}_{pk}  ( {\color{k} \pmb q_{k}})}
+ w_{k_\tau} 
+  w_{k_\xi} 
+  \equiv \color{k} \mathsf{S}_{pk}
+\end{split}\end{align}
+
+\begin{align} \begin{split}
+  {\color{k} q_{pl}}
+  { \delta_{l_\xi k_\xi} {w}_{k_\xi}} 
+  \left(
+     {\color{o} \psi_{l_\tau}(1) }
+     {\color{z} \psi_{k_\tau}(1) } - 
+     {\color{z}
+     \left. {w}_{l_\tau} \D{\psi_{k_\tau}}{\tau} \right|_{\tau=\tau_{l_\tau}}
+     }
+  \right) = 
+  {\color{f} \mathsf{w}_{pk_\xi}}
+  {\color{z} \psi_{k_\tau}(0) }
+  {\color{z} {w}_{k_\xi}} 
+  \color{k}
+- \mathsf{F}_{pk}
+- \mathsf{B}_{pk}
++ \mathsf{S}_{pk}
+\end{split}\end{align}
+
+We introduce new notations to shorten the expression.
+$ K_{1,kl}$ is a $N_{Btx}\times N_{Btx}$ matrix that can be found as soon as the polynomial basis is fixed. 
+
+Let us fix the $p$ index.  For each fixed $p$, 
+${\color{f} W_{pk} }$, 
+$\color{k} \mathsf{F}_{pk}$,
+$\color{k} \mathsf{B}_{pk}$,
+$\color{k} \mathsf{S}_{pk}$
+are vectors of $N_{Btx}$ components.  
+
+\begin{equation}
+ K_{1,kl}
+  {\color{k} q_{pl} } =
+  {\color{f} W_{pk} } -
+  {\color{k} \mathsf{F}_{pk}} -
+  {\color{k} \mathsf{B}_{pk}} +
+  {\color{k} \mathsf{S}_{pk}} 
+\end{equation}
+
+The system is solved by iterations. 
+${\color{f} W_{pk} }$ is computed once per ADER step before the iterations.
+$\color{k} \mathsf{F}_{pk}$,
+$\color{k} \mathsf{B}_{pk}$,
+$\color{k} \mathsf{S}_{pk}$
+are evaluated at each iteration. 
+The index  $i$ is the number of iteration:
+
+\begin{equation}\label{eq:nonconsADERiter}
+ {\color{k} q_m ^{(i+1)} } =
+ (K_{1}^{-1})_{mk} \left(
+  {\color{f} W_{pk} } -
+  {\color{k} \mathsf{F}_{pk}^{(i)}} -
+  {\color{k} \mathsf{B}_{pk}^{(i)}} +
+  {\color{k} \mathsf{S}_{pk}^{(i)}} 
+ \right)
+\end{equation}
+
+Remembering mesh steps, 
+\begin{equation}
+\boxed{
+ {\color{k} q_m ^{(i+1)} } =
+ (K_{1}^{-1})_{mk} 
+  {\color{f} W_{pk} } -
+\frac{\Delta t}{\Delta x}
+ (K_{1}^{-1})_{mk} 
+  {\color{k} \mathsf{F}_{pk}^{(i)}} -
+  \frac{\Delta t}{\Delta x}
+ (K_{1}^{-1})_{mk} 
+  {\color{k} \mathsf{B}_{pk}^{(i)}} +
+  \Delta t
+ (K_{1}^{-1})_{mk} 
+  {\color{k} \mathsf{S}_{pk}^{(i)}} 
+}
+\end{equation}
 \end{document}
 
