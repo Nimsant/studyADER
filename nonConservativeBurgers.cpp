@@ -24,10 +24,31 @@ namespace nonConservativeBurgers {
     auto Solution(ftype t, ftype x, ftype Lx){
       ftype sigma = 10;
       ftype k = 2*M_PI/Lx;
+      /*
       Burgers w {
         x - model.a*t,
         x - model.b*t
       };
+      */
+      Burgers w {
+        sin(k*(x - model.a*t)),
+        sin(k*(x - model.b*t)),
+      };
+      /*
+      Burgers w {
+        model.uminus, 
+        model.vminus
+      };
+      if (x>2+model.a*t){
+        ftype K1 = ( fabs(model.e1+model.e2)<1e-8 ) ? 1 : model.e2/(model.e1+model.e2);
+        ftype K2 = ( fabs(model.e1+model.e2)<1e-8 ) ? 1 : (model.e1*model.vminus - model.e2*model.uminus) / (model.e1 + model.e2) ;
+        w[1] = K1 * (2 * sigma - model.uminus - model.vminus) + 
+               K2 * exp(2 - 2 * (model.uminus + model.vminus)/sigma );
+        w[0] = 2 * sigma - model.uminus - (model.vminus + w[1]);
+        //w[1] = .75;
+        //w[0] = .25; 
+      }
+      */
       return w;
     }
 
@@ -50,6 +71,10 @@ namespace nonConservativeBurgers {
       B(0,1) = 0*model.a;//u[0];
       B(1,0) = 0*model.b;//u[1]; 
       B(1,1) = model.b;//u[1];
+      //B(0,0) = u[0];
+      //B(0,1) = u[0];
+      //B(1,0) = u[1]; 
+      //B(1,1) = u[1];
       return B;
     }
 

@@ -46,7 +46,7 @@ def plotfile(ifile, filename, iq=0):
 
     #ax.set_xticks([0,.5,1])
     ax.grid()
-    #ax.set_ylim(-.2,1.2)
+    ax.set_ylim(-.2,11.2)
     ax.legend()
     fig.canvas.draw()
 

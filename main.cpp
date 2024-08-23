@@ -31,9 +31,10 @@ template <int M> ftype deriv_polynomial(int l, ftype x){
 template<int Mx, int Mt, typename T, int N>
 struct DumbserMethod {
 
-  ftype Lx {1.*N};
-  ftype dx {1.};
-  ftype dt {.1};
+  ftype Lx {12};
+  ftype dx {Lx/N};
+  //ftype dt {dx/.4/10};
+  ftype dt {dx/10};
   ftype Tmax {1};
   static constexpr int NBx {Mx+1};
   static constexpr int NBt {Mt+1};
@@ -255,9 +256,11 @@ struct DumbserMethod {
         for (int ikt=0; ikt<NBt; ikt++) {
           T qL {boundary_1_project_at_ti(left_cell_q, ikt)};
           T qR {boundary_0_project_at_ti(q, ikt)};
+          auto nCD = nonConservativeD(qL,qR,dx,dt);
+          auto SOF = SolomonOsherFlux(qL,qR,dx,dt);
           for (int iq=0; iq<NQ; iq++) {
-            D_integrated_dt[iq] += GAUSS_WEIGHTS[Mt][ikt] * nonConservativeD(qL,qR,dx,dt)[iq]; 
-            flux_integrated_dt[iq] += GAUSS_WEIGHTS[Mt][ikt] * SolomonOsherFlux(qL,qR,dx,dt)[iq]; 
+            D_integrated_dt[iq] += GAUSS_WEIGHTS[Mt][ikt] * nCD[iq]; 
+            flux_integrated_dt[iq] += GAUSS_WEIGHTS[Mt][ikt] * SOF[iq]; 
           }
         }
         for (int iq=0; iq<NQ; iq++) {
@@ -310,6 +313,15 @@ struct DumbserMethod {
                                                   - dt * addsourcep[iq]
                 );
             
+            /*
+            fmt::print(" + {} - {}\n - {} - {} - {} + {}\n", 
+                (dt/dx) * volfluxp[iq],
+                (dt/dx) * smoothBq[iq],
+                (dt/dx) * left_cell_right_D[iq] * POLYNOM_AT_ONE[Mx][ikx],
+                (dt/dx) * left_cell_left_D[iq] * POLYNOM_AT_ZERO[Mx][ikx],
+                (dt/dx) * left_cell_right_flux[iq] * POLYNOM_AT_ONE[Mx][ikx],
+                (dt/dx) * left_cell_left_flux[iq] * POLYNOM_AT_ZERO[Mx][ikx]);
+                */
           }
         }
       }
@@ -348,20 +360,20 @@ struct DumbserMethod {
 };
 
 int main() {
-  fmt::print(" {:>8} {:>8} {:>8} {:>6} {:>4} {:>4} {:>4} {:>16} {:>16}\n","dx", "dt", "T", "N", "NQ", "NBx", "NBt", "L2", "Linf");
+  fmt::print(" {:>8} {:>8} {:>8} {:>6} {:>4}\n","dx", "dt", "T", "N", "NQ");
   {
 
-      DumbserMethod<0, 0, nonConservativeBurgers::Burgers, 10> mesh_calc;
+      DumbserMethod<0, 0, nonConservativeBurgers::Burgers, 1000> mesh_calc;
       mesh_calc.init();
       int istep = 0;
+  fmt::print(" {:>8} {:>8} \n",mesh_calc.dx, mesh_calc.dt);
       mesh_calc.print_all(istep);
 
       //for (; istep < floor(mesh_calc.Tmax/mesh_calc.dt+0.5); istep++) {
-      for (; istep < 1; istep++) {
+      for (; istep < 1000; istep++) {
      //   fmt::print("istep {}\n",istep);
         mesh_calc.update(istep);
-     //   //if (istep%1000==0) 
-     //     mesh_calc.print_all(istep);
+        if (istep%100==0) mesh_calc.print_all(istep);
       }
       //mesh_calc.ADER_update(istep);
       //istep++;
