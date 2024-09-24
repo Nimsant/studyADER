@@ -103,34 +103,34 @@ auto SolomonOsherFlux(T uL, T uR, ftype dx, ftype dt){
 }
 
 template<typename T>
-auto nonConservativeFlux(T uL, T uR, ftype dx, ftype dt){
+auto nonConservativeD(T uL, T uR, ftype dx, ftype dt){
   
-  auto fL = uL.Flux();
-  auto fR = uR.Flux();
-
-  arma::mat Aint_dQ (T::NQ, T::NQ);
+  arma::mat Bint_dQ (T::NQ, T::NQ);
 
   const int Oorder = 1;
+
   for (int ik=0; ik<Oorder+1; ik++){
     T wk {};
     ftype s = GAUSS_ROOTS[Oorder][ik];
     for (int iq=0; iq< T::NQ; iq++) {
       wk[iq] = uL[iq]*s + (1-s)*uR[iq];
     }
-    Aint_dQ += GAUSS_WEIGHTS[Oorder][ik] * wk.Amatrix();
+    Bint_dQ += GAUSS_WEIGHTS[Oorder][ik] * wk.Bmatrix();
   }
+  //Bint_dQ.print("my B:");
 
   T w {};
 
   for (int iq = 0; iq < T::NQ; iq++) {
-    T AmodU {};
-    for (int ip = 0; ip < T::NQ; ip++) {
-      AmodU[iq] += Aint_dQ(iq,ip) * (uR[ip] - uL[ip]);
-    }
 
-    w[iq] = AmodU[iq];
+    for (int ip = 0; ip < T::NQ; ip++) {
+      //fmt::print("B {} uR-uL {}\n", Bint_dQ(iq,ip), (uR[ip] - uL[ip]));
+      w[iq] += 0.5 * Bint_dQ(iq,ip) * (uR[ip] - uL[ip]);
+      //fmt::print("w[{}] {}\n", iq, w[iq]);
+    }
   }
   
+  //fmt::print("w {} {}\n", w[0], w[1]);
   return w;
 
 }
