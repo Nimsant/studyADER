@@ -7,16 +7,13 @@ GCC :=g++
 MAKEFLAGS += --warn-undefined-variables
 MAKEFLAGS += --no-builtin-rules
 
-MODELS = Burgers.cpp nonConservativeBurgers.cpp Advection.cpp seismic.cpp eqs4testing.cpp gas.cpp
+MODELS = nonConservativeBurgers.cpp
 
 FLUX = flux.cpp
 
 OPTIONS = -O3 -std=c++2a -I fmt/include  -larmadillo
 DEFINES = 
 					
-					
-					
-
 ALL: main
 
 GENERATED_FILES = gen_derivatives_l.cpp gen_polynom_at_one.cpp gen_polynom_at_zero.cpp gen_polynomials_l.cpp gen_roots.cpp gen_weights.cpp
