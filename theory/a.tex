@@ -946,6 +946,13 @@ Let us take a system of equations  for vector of variables $\color{o}{\mathbf{u}
   {\color{o} S_p(\pmb u, x, t)} \quad
 \end{equation}
 
+Let us take an element of spacetime $t^{(k)}<t<t^{(k)}+\Delta t$, $x^{(m)}<x<x^{(m)}+\Delta x$ and introduce local dimensionless variables in it
+\begin{align}
+  \tau^{(k)}(t) = \frac{t-t^{(k)}}{\Delta t}; \quad t(\tau^{(k)}) = t^{(k)}+\tau \Delta t \\
+  \xi^{(m)}(x) = \frac{x-x^{(m)}}{\Delta x}; \quad x(\xi^{(m)}) = x^{(m)}+\xi {\Delta x}. \\
+  \xi^{(m)} \equiv \xi; \quad  \tau^{(k)} \equiv \tau.
+\end{align}
+The last expressions show how we omit the indexes of the current element. The indexes are written only for other elements, such as $(m+1)$ for its neighbor. 
 We introduce dimensionless fluxes and sources as:
 \begin{equation} 
   \pmb F^* = \frac{\Delta t}{\Delta x} \pmb F; \quad
@@ -972,7 +979,12 @@ The system with   $\pmb F^*$ and $\pmb S^*$ is as follows. We multiply it by a b
   \int_0^1 d\tau}
 \end{equation}
 
+\clearpage
 The first term is integrated in $\tau$. Expressed trhough the values stored on the mesh before and after the DG update:
+
+\begin{equation}
+  \int_0^1 \D {u_p}{\tau} d\tau = \left. u_p \right|_{\tau=1} -  \left. u_p \right|_{\tau=0}.
+\end{equation}
 
 \begin{equation} 
   \left. u_p \right|_{\tau=0}\approx  {\color{f} \mathsf{w}_{pl_\xi} }
@@ -983,91 +995,214 @@ The first term is integrated in $\tau$. Expressed trhough the values stored on t
    {\color{o} \psi_{l_\xi} (\xi)}
 \end{equation}
 
+\begin{equation} 
+ {\color{z} \cdot 
+  \int_0^1 d\xi
+  \int_0^1 d\tau}
+ \D {\color{o} u_p} {\tau} 
+ {\color{z} 
+  \psi_{k_\xi} (\xi) } = 
+{\color{k} \mathsf{u}^+_{pl_\xi} }
+  \int_0^1 d\xi
+{\color{o} \psi_{l_\xi} (\xi)}
+{\color{z} \psi_{k_\xi} (\xi)} 
+-
+{\color{f} \mathsf{w}_{pl_\xi} }
+  \int_0^1 d\xi
+{\color{o} \psi_{l_\xi} (\xi)}
+{\color{z} \psi_{k_\xi} (\xi)} 
+=
+  {\color{k} \mathsf{u}^+_{pk_\xi} }
+  w_{k_\xi}  -
+  {\color{f} \mathsf{w}_{pk_\xi} } 
+  w_{k_\xi}  
+\end{equation}
+
+\begin{align}
+  \begin{split}
+ {\color{z} \cdot 
+  \int_0^1 d\xi
+  \int_0^1 d\tau}
+ \D {\color{o} F^*_p (\pmb u)}{\xi} 
+ {\color{z} 
+  \psi_{k_\xi} (\xi) } = 
+  {\color{z} \int_0^1 d\tau \left( 
+  \left.
+  {\color{s} \mathsf{F}_\text{right}  }
+  \psi_{k_\xi} 
+  \right|_{\xi=1}
+  - 
+  \left.
+  {\color{s} \mathsf{F}_\text{left}  }
+  \psi_{k_\xi} 
+  \right|_{\xi=0}
+  -
+  \int_0^1 
+  {\color{o} F^*_p (\pmb u)}
+  \D{\psi_{k_\xi}}{\xi}
+  d\xi
+  \right) } 
+\end{split}
+\end{align}
+
+\begin{align}
+  \begin{split}
+ {\color{z} \cdot 
+  \int_0^1 d\xi
+  \int_0^1 d\tau}
+  {\color{o} B^*_{pq}(\pmb u)} \D {\color{o} u_q} {\xi}
+ {\color{z} 
+  \psi_{k_\xi} (\xi) } = 
+  {\color{z} \int_0^1 d\tau \left( 
+  \left.
+  {\color{s} \mathsf{D}_\text{right}  }
+  \psi_{k_\xi} 
+  \right|_{\xi=1}
+  + 
+  \left.
+  {\color{s} \mathsf{D}_\text{left}  }
+  \psi_{k_\xi} 
+  \right|_{\xi=0}
+  +
+  \int_0^1 
+    {\color{o} B^*_{pq}(\pmb u)} \D {\color{o} u_q} {\xi}
+ {\color{z} 
+  \psi_{k_\xi} (\xi) }
+  d\xi
+  \right) } 
+\end{split}
+\end{align}
+\clearpage
 In the other terms, the integral in time is evaluated later. We need to insert the dependence on time. 
 The dependence of $u_p$ in time is approximated with ADER (next chapter) to be
 
-\begin{equation} 
-  u_p \approx q_{pl_\xi l_\tau} 
-   {\color{o} \psi_{l_\xi} (\xi)}
-   {\color{o} \psi_{l_\tau} (\tau)}
-\end{equation}
 
-\begin{equation} 
-  {\color{o} B^*_{pq}(\pmb u)}  \approx {\color{o} B_{pql_\xi l_\tau}}
-   {\color{o} \psi_{l_\xi} (\xi)}
-   {\color{o} \psi_{l_\tau} (\tau)}
-   = 
-  {\color{o} B^*_{pq}(\pmb u)}  = {\color{o} B_{pq}(\pmb q_{l_\xi l_\tau})
-   {\color{o} \psi_{l_\xi} (\xi)}
-   {\color{o} \psi_{l_\tau} (\tau)}
-  }
-\end{equation}
+%\begin{equation} 
+  %{\color{o} B^*_{pq}(\pmb u)}  \approx {\color{o} B_{pql_\xi l_\tau}}
+   %{\color{o} \psi_{l_\xi} (\xi)}
+   %{\color{o} \psi_{l_\tau} (\tau)}
+   %= 
+  %{\color{o} B^*_{pq}(\pmb u)}  = {\color{o} B_{pq}(\pmb q_{l_\xi l_\tau})
+   %{\color{o} \psi_{l_\xi} (\xi)}
+   %{\color{o} \psi_{l_\tau} (\tau)}
+  %}
+%\end{equation}
 
 
-Let us inspect the smooth part of the non-conservative product. If $B_{pq}=\color{o} B_{pql_\xi l_\tau} \psi_{l_\xi} \psi_{l_\tau}$, $q_q=\color{k} q_{qm_\xi m_\tau} \psi_{m_\xi} \psi_{m_\tau}$,
 \begin{equation}
-  \int_0^1 
-  \int_0^1
-  {\color{o} B_{pql_\xi l_\tau} \psi_{l_\xi} \psi_{l_\tau}}
-  {\color{k} q_{qm_\xi m_\tau} \D{\psi_{m_\xi}}{\xi} \psi_{m_\tau}}
-  {\color{z} \psi_{k_\xi} }
-  d\tau 
-  d\xi  = ?
+ {\color{o} u_p} \approx 
+ {\color{k} q_p (\xi,\tau)} = 
+ {\color{k} q_{pl_\xi l_\tau} } 
+ {\color{o} \psi_{l_\xi}(\xi)
+            \psi_{l_\tau}(\tau) } = 
+ {\color{k} q_{pl_\xi l_\tau} } 
+ {\color{o} \theta_{l}(\xi,\tau) }
 \end{equation}
 
 \begin{equation}
-  \int_0^1
-  {\color{o} \psi_{l_\tau}}
-  {\color{k} \psi_{m_\tau}}
-  d\tau  = w_{l_\tau} \delta_{l_\tau m_\tau}
+\theta_l (\xi,\tau)= \psi_{l_\xi}(\xi)
+            \psi_{l_\tau}(\tau) 
+\end{equation}
+
+
+\begin{equation}
+{\color{o} F^*_p(\pmb u)} = 
+{\color{k} \mathcal{F}_{pl} }
+{\color{o} \theta_{l}(\xi,\tau) }; \quad {\color{k} \mathcal{F}_{pl}  \approx  F^*_p(\pmb q_l) }
 \end{equation}
 
 \begin{equation}
-  \int_0^1
-  {\color{o} \psi_{l_\xi} }
-  {\color{k} \D{\psi_{m_\xi}}{\xi} }
-  {\color{z} \psi_{k_\xi} }
-  d\xi
-  = 
-  \sum_i w_i
-  {\color{o} \delta_{l_\xi i} }
-  {\color{k}\left. \D{\psi_{m_\xi}}{\xi} \right|_{\xi=\xi_i}}
-  {\color{z} \delta_{k_\xi i} }
-  = 
-  w_{k_\xi}
-  {\delta_{k_\xi l_\xi} }
-  {\left. \D{\psi_{m_\xi}}{\xi} \right|_{\xi=\xi_{k_\xi}}}
+    {\color{o} B^*_{pq}(\pmb u)} \D {\color{o} u_q} {\xi}
+   \approx 
+  {\color{k}\mathcal{B}_{pl}}
+{\color{o} \theta_{l}(\xi,\tau) }; \quad 
+  {\color{k}\mathcal{B}_{pl}}= \left.
+    {\color{o} B^*_{pq}(\pmb u)} \D {\color{o} u_q} {\xi}
+    \right|_{\xi=\xi_l} = 
+    {\color{o} B^*_{pq}({\color{k} \pmb q_l })} {\color{k} q_{ql} } \D {\color{o} \psi_{l_\xi}} {\xi}
+     {\color{o}       \psi_{l_\tau}(\tau) }
 \end{equation}
+
+
+Let us collect the jump terms:
 
 \begin{equation}
-  \int_0^1 
-  \int_0^1
-  {\color{o} B_{pql_\xi l_\tau} \psi_{l_\xi} \psi_{l_\tau}}
-  {\color{k} q_{qm_\xi m_\tau} \D{\psi_{m_\xi}}{\xi} \psi_{m_\tau}}
-  {\color{z} \psi_{k_\xi} }
-  d\tau 
-  d\xi
-  =
-  {\color{o} B_{pqk_\xi l_\tau}}
-  {\color{k} q_{qm_\xi l_\tau} }
-  w_{l_\tau} 
-  w_{k_\xi}
-  {\left. \D{\psi_{m_\xi}}{\xi} \right|_{\xi=\xi_{k_\xi}}}
+     {\color{s} \pmb q^-_{l_\tau} }  =  
+     {\color{k} \pmb q_{l_\xi l_\tau}} \psi_{l_\xi}(1) ;
+     \quad
+     {\color{s} \pmb q^+_{l_\tau} }  =  
+     {\color{k} \pmb q_{l_\xi l_\tau}} \psi_{l_\xi}(0) 
 \end{equation}
-
-The intercell flux and the jump part of non-conservative product is merged together into $\mathcal{D}(q^-,q^+)$, to be defined later. 
-
-The expression for volumetric flux is
-         $F_p (\pmb q_l) I_{l_\xi k_\xi}  w_{l_\tau}$, and
-               the matrix 
-               \begin{equation}
-                 {\color{z} I_{l_\xi k_\xi} = 
-                 \int_0^1 }
-                 {\color{o} \psi_{l_\xi}(\xi) }
-                 {\color{z}
-                 \D{\psi_{k_\xi}}{\xi} d\xi = w_{l_\xi}\left. \D {\psi_{k_\xi}}{\xi}\right|_{\xi=\xi_{l_\xi}}.
-                 }
-               \end{equation}
+\begin{equation}
+     {\color{s} \mathcal{D} (\pmb q^-_{l_\tau},\pmb q^{\text{right}+}_{l_\tau}) }  =  {\color{s} \mathsf{D}_\text{right}  } +  {\color{s} \mathsf{F}_\text{right}  }
+\end{equation}
+\begin{equation}
+  {\color{s} \mathcal{D} (\pmb q^{\text{left}-}_{l_\tau},\pmb q^+_{l_\tau}) }  =  {\color{s} \mathsf{D}_\text{left}  } -  {\color{s} \mathsf{F}_\text{left}  }
+\end{equation}
+%Let us inspect the smooth part of the non-conservative product. If $B_{pq}=\color{o} B_{pql_\xi l_\tau} \psi_{l_\xi} \psi_{l_\tau}$, $q_q=\color{k} q_{qm_\xi m_\tau} \psi_{m_\xi} \psi_{m_\tau}$,
+%\begin{equation}
+%  \int_0^1 
+%  \int_0^1
+%  {\color{o} B_{pql_\xi l_\tau} \psi_{l_\xi} \psi_{l_\tau}}
+%  {\color{k} q_{qm_\xi m_\tau} \D{\psi_{m_\xi}}{\xi} \psi_{m_\tau}}
+%  {\color{z} \psi_{k_\xi} }
+%  d\tau 
+%  d\xi  = ?
+%\end{equation}
+%
+%\begin{equation}
+%  \int_0^1
+%  {\color{o} \psi_{l_\tau}}
+%  {\color{k} \psi_{m_\tau}}
+%  d\tau  = w_{l_\tau} \delta_{l_\tau m_\tau}
+%\end{equation}
+%
+%\begin{equation}
+%  \int_0^1
+%  {\color{o} \psi_{l_\xi} }
+%  {\color{k} \D{\psi_{m_\xi}}{\xi} }
+%  {\color{z} \psi_{k_\xi} }
+%  d\xi
+%  = 
+%  \sum_i w_i
+%  {\color{o} \delta_{l_\xi i} }
+%  {\color{k}\left. \D{\psi_{m_\xi}}{\xi} \right|_{\xi=\xi_i}}
+%  {\color{z} \delta_{k_\xi i} }
+%  = 
+%  w_{k_\xi}
+%  {\delta_{k_\xi l_\xi} }
+%  {\left. \D{\psi_{m_\xi}}{\xi} \right|_{\xi=\xi_{k_\xi}}}
+%\end{equation}
+%
+%\begin{equation}
+%  \int_0^1 
+%  \int_0^1
+%  {\color{o} B_{pql_\xi l_\tau} \psi_{l_\xi} \psi_{l_\tau}}
+%  {\color{k} q_{qm_\xi m_\tau} \D{\psi_{m_\xi}}{\xi} \psi_{m_\tau}}
+%  {\color{z} \psi_{k_\xi} }
+%  d\tau 
+%  d\xi
+%  =
+%  {\color{o} B_{pqk_\xi l_\tau}}
+%  {\color{k} q_{qm_\xi l_\tau} }
+%  w_{l_\tau} 
+%  w_{k_\xi}
+%  {\left. \D{\psi_{m_\xi}}{\xi} \right|_{\xi=\xi_{k_\xi}}}
+%\end{equation}
+%
+%The intercell flux and the jump part of non-conservative product is merged together into $\mathcal{D}(q^-,q^+)$, to be defined later. 
+%
+%The expression for volumetric flux is
+%         $F_p (\pmb q_l) I_{l_\xi k_\xi}  w_{l_\tau}$, and
+%               the matrix 
+%               \begin{equation}
+%                 {\color{z} I_{l_\xi k_\xi} = 
+%                 \int_0^1 }
+%                 {\color{o} \psi_{l_\xi}(\xi) }
+%                 {\color{z}
+%                 \D{\psi_{k_\xi}}{\xi} d\xi = w_{l_\xi}\left. \D {\psi_{k_\xi}}{\xi}\right|_{\xi=\xi_{l_\xi}}.
+%                 }
+%               \end{equation}
 
 The explicit expression for the update of $u_p$ is:
 
@@ -1076,24 +1211,275 @@ The explicit expression for the update of $u_p$ is:
   w_{k_\xi}  = 
   {\color{f} \mathsf{w}_{pk_\xi} } 
   w_{k_\xi}  
-  + F_{pl_\xi l_\tau} I_{l_\xi k_\xi}  w_{l_\tau}
-  - {\color{o} B_{pqk_\xi l_\tau}}
-  {\color{k} q_{qm_\xi l_\tau} }
+  +  {\color{o} F_{p}({\color{k} \pmb q_l } )}I_{l_\xi k_\xi}  w_{l_\tau}
+  - {\color{o} B^*_{pq}({\color{k} \pmb q_l })} {\color{k} q_{ql} }  I_{k_\xi l_\xi} 
   w_{l_\tau} 
-  w_{k_\xi}
-  {\left. \D{\psi_{m_\xi}}{\xi} \right|_{\xi=\xi_{k_\xi}}} -
+  -
   \\
   - \left( 
    \left. 
-     {\color{s} \int_0^1 d\tau  \mathcal{D} (\pmb q^-_{l_\tau},\pmb q^{\text{right}+}_{l_\tau}) } \psi_{k_\xi}
+     \int_0^1 d\tau  {\color{s} \mathcal{D} (\pmb q^-_{l_\tau},\pmb q^{\text{right}+}_{l_\tau}) } 
+    {\color{z} \psi_{k_\xi}}
    \right|_{\xi=1} 
-    - 
+    + 
    \left. 
-     {\color{s} \int_0^1 d\tau \mathcal{D} (\pmb q^{\text{left}-}_{l_\tau},\pmb q^+_{l_\tau}) } \psi_{k_\xi} 
+     {\color{s} \int_0^1 d\tau \mathcal{D} (\pmb q^{\text{left}-}_{l_\tau},\pmb q^+_{l_\tau}) } 
+    {\color{z} \psi_{k_\xi}}
    \right|_{\xi=0} 
   \right)
 \end{align}
+%\begin{align}
+%  {\color{k} \mathsf{u}^+_{pk_\xi} }
+%  w_{k_\xi}  = 
+%  {\color{f} \mathsf{w}_{pk_\xi} } 
+%  w_{k_\xi}  
+%  + F_{pl_\xi l_\tau} I_{l_\xi k_\xi}  w_{l_\tau}
+%  - {\color{o} B_{pqk_\xi l_\tau}}
+%  {\color{k} q_{qm_\xi l_\tau} }
+%  w_{l_\tau} 
+%  w_{k_\xi}
+%  {\left. \D{\psi_{m_\xi}}{\xi} \right|_{\xi=\xi_{k_\xi}}} -
+%  \\
+%  - \left( 
+%   \left. 
+%     {\color{s} \int_0^1 d\tau  \mathcal{D} (\pmb q^-_{l_\tau},\pmb q^{\text{right}+}_{l_\tau}) } \psi_{k_\xi}
+%   \right|_{\xi=1} 
+%    - 
+%   \left. 
+%     {\color{s} \int_0^1 d\tau \mathcal{D} (\pmb q^{\text{left}-}_{l_\tau},\pmb q^+_{l_\tau}) } \psi_{k_\xi} 
+%   \right|_{\xi=0} 
+%  \right)
+%\end{align}
 
+\clearpage
+\section{ADER} \label{sec:nonconsADER}
+
+Let us integrate system again, similarly to (\ref{DG}), but with ${\color{z} \cdot  \theta_k (\xi,\tau) }$ such that :
+\begin{equation} \label{localADERinit}
+\left.
+\left.
+ \D {\color{o} u_p} {\tau} + 
+ \D {\color{o} F^*_p (\pmb u)}{\xi} +
+  {\color{o} B^*_{pq} } \D {\color{o}u_q}{\xi} 
+  = 
+ {\color{o} S^*_p} \quad
+ \right| 
+ {\color{z} \cdot
+  \theta_k (\xi,\tau) }
+ \right| 
+ {\color{z} \cdot \int_0^1 d\xi
+  \int_0^1 d\tau }
+\end{equation}
+
+\begin{equation}
+ {\color{o} u_p} \approx 
+ {\color{k} q_p (\xi,\tau)} = 
+ {\color{k} q_{pl_\xi l_\tau} } 
+ {\color{o} \psi_{l_\xi}(\xi)
+            \psi_{l_\tau}(\tau) } = 
+ {\color{k} q_{pl_\xi l_\tau} } 
+ {\color{o} \theta_{l}(\xi,\tau) }
+\end{equation}
+
+\begin{equation}
+{\color{z} \theta_l (\xi,\tau)= \psi_{l_\xi}(\xi)
+            \psi_{l_\tau}(\tau) }
+\end{equation}
+
+\begin{equation}
+{\color{o} F^*_p(\pmb u)} = 
+{\color{k} \mathcal{F}_{pl} }
+{\color{o} \theta_{l}(\xi,\tau) }; \quad {\color{k} \mathcal{F}_{pl}  \approx  F^*_p(\pmb q_l) }
+\end{equation}
+
+\begin{equation}
+    {\color{o} B^*_{pq}(\pmb u)} \D {\color{o} u_q} {\xi}
+   \approx 
+  {\color{k}\mathcal{B}_{pl}}
+{\color{o} \theta_{l}(\xi,\tau) }; \quad 
+  {\color{k}\mathcal{B}_{pl}}= 
+    {\color{o} B^*_{pq}({\color{k} \pmb q_l })} {\color{k} q_{ql} } \D {\color{o} \psi_{l_\xi}(\xi)} {\xi}
+     {\color{o}       \psi_{l_\tau}(\tau) }
+\end{equation}
+
+\begin{equation}
+{\color{o} S^*_p(\pmb u)} = 
+{\color{k} \mathcal{S}_{pl} }
+{\color{o} \theta_{l}(\xi,\tau) }; \quad {\color{k} \mathcal{S}_{pl}  \approx  S_p(\pmb q_l) }
+\end{equation}
+
+Let us integrate the term with the time derivative by parts:
+\begin{equation}
+ {\color{z} \int_0^1 \int_0^1 }
+ \D {\color{o} u_p} {\tau} 
+ {\color{z} \theta_k (\xi,\tau) }
+ {\color{z} d\xi d\tau } =
+ {\color{z}
+   \int_0^1 \left( 
+     {\color{o} u_p} 
+     \left. \theta_{k} \right|_{\tau=0}^{\tau=1} - 
+     \int_0^1 {\color{o} u_p}
+     \D{\theta_k}{\tau} d\tau
+   \right) d\xi.
+ }
+\end{equation}
+
+This way, we can expose the known values:
+
+\begin{equation}
+ {\color{o}
+  u_p(\tau=0) } = 
+  {\color{f} \mathsf{w}_{pl_\xi}}
+ {\color{o} \psi_{l_\xi}(\xi) } ; \quad
+  {\color{k} q_{pl}}{\color{o}\psi_{l_\tau}(0)} = {\color{f} \mathsf{w}_{pl_\xi}}
+\end{equation}
+
+\begin{equation}
+ {\color{o}
+  u_p(\tau=1) } = 
+ {\color{k} q_{pl}}
+ {\color{o} \psi_{l_\tau}(1) }
+ {\color{o} \psi_{l_\xi}(\xi) }
+\end{equation}
+
+\begin{align} \begin{split}
+ {\color{z} \cdot \int_0^1 \int_0^1 }
+ \D {\color{o} u_p} {\tau} 
+ {\color{z} \theta_k (\xi,\tau) }
+  {\color{z} d\xi d\tau }  & =
+ {\color{k} q_{pl}}
+ {\color{o} \psi_{l_\tau}(1) }
+ {\color{z} \psi_{k_\tau}(1) } 
+ {\color{z} \int_0^1 }
+ {\color{o} \psi_{l_\xi}(\xi) }
+ {\color{z} \psi_{k_\xi}(\xi) d\xi} - 
+  {\color{f} \mathsf{w}_{pl_\xi}}
+ {\color{z} \psi_{k_\tau}(0) } 
+ {\color{z} \int_0^1 }
+ {\color{o} \psi_{l_\xi}(\xi) }
+ {\color{z} \psi_{k_\xi}(\xi) d\xi} - \\ -
+  &{\color{k} q_{pl}}
+ {\color{z} \int_0^1 } 
+ {\color{o} \psi_{l_\xi}(\xi) }
+ {\color{z} \psi_{k_\xi}(\xi) d\xi} 
+ {\color{z} \int_0^1 }
+ {\color{o} \psi_{l_\tau}(\tau) }
+ {\color{z} \D{\psi_{k_\tau}(\tau)}{\tau} d\tau}  = \\
+=
+  &{\color{k} q_{pl}}
+  w_{k_\xi}\delta_{k_\xi l_\xi}(
+ {\color{o} \psi_{l_\tau}(1) }
+ {\color{z} \psi_{k_\tau}(1) } 
+  -
+  I_{l_\tau k_\tau})
+  -
+  {\color{f} \mathsf{w}_{pl_\xi}}
+ {\color{z} \psi_{k_\tau}(0) } 
+  w_{k_\xi}\delta_{k_\xi l_\xi}
+\end{split}\end{align}
+
+
+\begin{align} \begin{split}
+ {\color{z} \cdot \int_0^1 \int_0^1 }
+ \D {\color{o} F^*_p (\pmb u)}{\xi}
+ {\color{z} \theta_k (\xi,\tau) }
+  {\color{z} d\xi d\tau }  & =
+  {\color{k} F^*_p(\pmb q_l)}
+  I_{k_\xi l_\xi}
+  w_{k_\tau}\delta_{k_\tau l_\tau}
+\end{split}\end{align}
+
+\begin{align} \begin{split}
+ {\color{z} \cdot \int_0^1 \int_0^1 }
+  {\color{o} B^*_{pq} } \D {\color{o}u_q}{\xi} 
+ {\color{z} \theta_k (\xi,\tau) }
+  {\color{z} d\xi d\tau }  & =
+    {\color{o} B^*_{pq}({\color{k} \pmb q_l })} {\color{k} q_{ql} } 
+  I_{k_\xi l_\xi}
+  w_{k_\tau}\delta_{k_\tau l_\tau}
+\end{split}\end{align}
+
+
+\begin{align} \begin{split}
+  {\color{k} q_{pl}}
+  w_{k_\xi}\delta_{k_\xi l_\xi}(
+ {\color{o} \psi_{l_\tau}(1) }
+ {\color{z} \psi_{k_\tau}(1) } 
+  -
+  I_{l_\tau k_\tau})
+  -
+  {\color{f} \mathsf{w}_{pl_\xi}}
+ {\color{z} \psi_{k_\tau}(0) } 
+  w_{k_\xi}\delta_{k_\xi l_\xi}
+  +
+  {\color{k} F^*_p(\pmb q_l)}
+  I_{k_\xi l_\xi}
+  w_{k_\tau}\delta_{k_\tau l_\tau}
+  +
+    {\color{o} B^*_{pq}({\color{k} \pmb q_l })} {\color{k} q_{ql} } 
+  I_{k_\xi l_\xi}
+  w_{k_\tau}\delta_{k_\tau l_\tau}
+  = 0
+\end{split}\end{align}
+
+
+\begin{align} \begin{split}
+  {\color{k} q_{pl}}
+  w_{k_\xi}\delta_{k_\xi l_\xi}(
+ {\color{o} \psi_{l_\tau}(1) }
+ {\color{z} \psi_{k_\tau}(1) } 
+  -
+  I_{l_\tau k_\tau})
+   = 
+  {\color{f} \mathsf{w}_{pl_\xi}}
+ {\color{z} \psi_{k_\tau}(0) } 
+  w_{k_\xi}\delta_{k_\xi l_\xi}
+  -
+  ({\color{k} F^*_p(\pmb q_l)}
+  +
+    {\color{o} B^*_{pq}({\color{k} \pmb q_l })} {\color{k} q_{ql} } 
+    )
+  I_{k_\xi l_\xi}
+  w_{k_\tau}\delta_{k_\tau l_\tau}
+\end{split}\end{align}
+
+\begin{align} \begin{split}
+  K_{U,kl}
+  {\color{k} q_{pl}}
+   = 
+  {\color{f} \mathsf{W}_{pk}}
+  -
+  K_{F,kl}
+  ({\color{k} F^*_p(\pmb q_l)}
+  +
+    {\color{o} B^*_{pq}({\color{k} \pmb q_l })} {\color{k} q_{ql} } )
+\end{split}\end{align}
+
+\begin{align} \begin{split}
+  {\color{k} q_{pm}}
+   = 
+  K_{U,mk}^{-1}\left(
+  {\color{f} \mathsf{W}_{pk}}
+  -
+  K_{F,kl}
+  ({\color{k} F^*_p(\pmb q_l)}
+  +
+    {\color{o} B^*_{pq}({\color{k} \pmb q_l })} {\color{k} q_{ql} } )
+    \right)
+\end{split}\end{align}
+
+\end{document}
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
 \clearpage
 \section{ADER} \label{sec:nonconsADER}
 
@@ -1204,7 +1590,7 @@ This way, we can expose the known values:
  {\color{z} \psi_{k_\xi}(\xi) d\xi} 
  {\color{z} \int_0^1 }
  {\color{o} \psi_{l_\tau}(\tau) }
- {\color{z} \D{\psi_{k_\tau}(\tau)}{\tau} d\tau} .
+ {\color{z} \D{\psi_{k_\tau}(\tau)}{\tau} d\tau} 
 \end{split}\end{align}
 
 
